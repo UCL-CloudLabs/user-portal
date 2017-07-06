@@ -31,6 +31,7 @@ export APP_SETTINGS=cloudlabs.config.DevConfig
 ### Run the webapp
 
 ```bash
+cd src
 flask run
 ```
 

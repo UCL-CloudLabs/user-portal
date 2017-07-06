@@ -17,4 +17,5 @@ def index():
 
 @blueprint.context_processor
 def inject_now():
+    """Enable {{now}} in templates, used by the footer."""
     return {'now': datetime.utcnow()}
