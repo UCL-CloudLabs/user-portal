@@ -1,0 +1,6 @@
+# Virtualenv location given in README.md
+/venv
+
+# Python stuff
+__pycache__
+
