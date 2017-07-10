@@ -4,13 +4,15 @@
 #
 #    pip-compile --output-file local.txt local.in
 #
+blinker==1.4              # via flask-sso
 click==6.7                # via flask, pip-tools
 first==2.0.1              # via pip-tools
+flask-sso==0.4.0
 flask==0.12.1
 itsdangerous==0.24        # via flask
 jinja2==2.9.6             # via flask
 markupsafe==1.0           # via jinja2
 pip-tools==1.9.0
 requests==2.14.2
-six==1.10.0               # via pip-tools
+six==1.10.0               # via flask-sso, pip-tools
 werkzeug==0.12.2          # via flask

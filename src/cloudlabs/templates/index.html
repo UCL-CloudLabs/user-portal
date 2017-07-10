@@ -11,5 +11,10 @@
   <p>Welcome to the trial 'CloudLabs' service for easy hosting of research web applications.</p>
   <p>This is a testing welcome page.</p>
   <p>In the future there will be links to documentation, info about the service, and a Shibboleth login link.</p>
-  <button>Log in with UCL credentials</button>
+
+  {% if 'user' in session %}
+    <p>Welcome {{ session['user']['display-name']|e }}!</p>
+  {% else %}
+    <a class="btn" href="/login">Log in with UCL credentials</a>
+  {% endif %}
 {% endblock content %}

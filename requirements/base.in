@@ -1,5 +1,6 @@
 # Flask web framework
 Flask
+flask-sso
 
 # For making http requests
 requests
