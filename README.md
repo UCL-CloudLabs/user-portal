@@ -6,7 +6,7 @@ seeking to deploy their apps on the cloud.
 ## Setting up the portal
 
 This is a Python 3 project. The portal can be run locally for limited
-development, but there is at yet no mocking of external services.
+development, but there is as yet no mocking of external services.
 
 ### Install requirements into virtualenv
 
