@@ -1,4 +1,4 @@
-from flask import session
+from flask import redirect, session, url_for
 from flask_sso import SSO
 
 
@@ -10,3 +10,8 @@ def setup_login(app):
     def login_callback(user_info):
         """Store information in session."""
         session['user'] = user_info
+
+    @app.route('/logout')
+    def logout():
+        session.pop('user')
+        return redirect(url_for('main.index'))
