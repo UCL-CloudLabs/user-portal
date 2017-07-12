@@ -7,19 +7,19 @@
 
 {% block content %}
   <h1>Error processing Single-Sign-On</h1>
-  <p>The identity provider has not given us sufficient information identify you.</p>
+  <p>The identity provider has not given us sufficient information to identify you.</p>
   <p>Please contact rc-softdev@ucl.ac.uk to report this issue.</p>
   <h2>Technical information</h2>
   Shibboleth attributes received:
-  <pre>
+  <ul>
   {% for name, value in shib_attrs|dictsort %}
-  {{ name|e }} = {{ value|e }}
+    <li>{{ name|e }} = {{ value|e }}</li>
   {% endfor %}
-  </pre>
+  </ul>
   Server environment:
-  <pre>
+  <ul>
   {% for name, value in request.environ|dictsort %}
-  {{ name|e }} = {{ value|e }}
+    <li>{{ name|e }} = {{ value|e }}</li>
   {% endfor %}
-  </pre>
+  </ul>
 {% endblock content %}
