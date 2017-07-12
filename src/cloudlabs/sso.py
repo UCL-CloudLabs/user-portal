@@ -13,6 +13,10 @@ def setup_login(app):
     else:
         setup_shib_login(app)
 
+    @app.context_processor
+    def inject_user():
+        return {'user': session.get('user', None)}
+
 
 def setup_shib_login(app):
     """Register a Shibboleth login handler for the given app."""

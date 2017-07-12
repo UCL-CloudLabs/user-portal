@@ -19,3 +19,8 @@ def index():
 def inject_now():
     """Enable {{now}} in templates, used by the footer."""
     return {'now': datetime.utcnow()}
+
+
+@blueprint.route('/profile')
+def profile():
+    return ''

@@ -1,8 +1,7 @@
-{% extends "indigo/base.html" %}
+{% extends "base.html" %}
 
 {% block breadcrumb_links %}
-  <li class="breadcrumb__item"><a href="https://www.ucl.ac.uk/">UCL Home</a></li>
-  <li class="breadcrumb__item"><a href="http://www.ucl.ac.uk/research-it-services">Research IT Services</a></li>
+  {{ super() }}
   <li class="breadcrumb__item">Self-serve Web Hosting for Research Applications</li>
 {% endblock breadcrumb_links %}
 
@@ -12,9 +11,9 @@
   <p>This is a testing welcome page.</p>
   <p>In the future there will be links to documentation, info about the service, and a Shibboleth login link.</p>
 
-  {% if 'user' in session %}
-    <p>Welcome {{ session['user']['display-name']|e }}!</p>
+  {% if user %}
+    <p>Welcome {{ user['display-name'] }}!</p>
   {% else %}
-    <a class="btn" href="/login">Log in with UCL credentials</a>
+    <a class="btn" href="{{ url_for('login') }}">Log in with UCL credentials</a>
   {% endif %}
 {% endblock content %}
