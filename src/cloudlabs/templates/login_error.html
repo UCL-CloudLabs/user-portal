@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block breadcrumb_links %}
+  {{ super() }}
+  <li class="breadcrumb__item">Self-serve Web Hosting for Research Applications</li>
+{% endblock breadcrumb_links %}
+
+{% block content %}
+  <h1>Error processing Single-Sign-On</h1>
+  <p>The identity provider has not given us sufficient information identify you.</p>
+  <p>Please contact rc-softdev@ucl.ac.uk to report this issue.</p>
+  <h2>Technical information</h2>
+  Shibboleth attributes received:
+  <pre>
+  {% for name, value in shib_attrs|dictsort %}
+  {{ name|e }} = {{ value|e }}
+  {% endfor %}
+  </pre>
+  Server environment:
+  <pre>
+  {% for name, value in request.environ|dictsort %}
+  {{ name|e }} = {{ value|e }}
+  {% endfor %}
+  </pre>
+{% endblock content %}

@@ -1,4 +1,4 @@
-from flask import redirect, session, url_for
+from flask import redirect, render_template, session, url_for
 from flask_sso import SSO
 
 
@@ -26,6 +26,11 @@ def setup_shib_login(app):
     def login_callback(user_info):
         """Store information in session."""
         session['user'] = user_info
+
+    @ext.login_error_handler
+    def login_error_callback(shib_attrs):
+        """Report on a Shibboleth login error."""
+        return render_template('login_error.html', shib_attrs=shib_attrs)
 
     @app.route('/logout')
     def logout():
