@@ -26,6 +26,7 @@ def setup_shib_login(app):
     def login_callback(user_info):
         """Store information in session."""
         session['user'] = user_info
+        return redirect(url_for('main.index'))
 
     @ext.login_error_handler
     def login_error_callback(shib_attrs):
