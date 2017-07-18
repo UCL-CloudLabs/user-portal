@@ -6,6 +6,6 @@ flask-sso
 requests
 
 # Database connection
-#psycopg2
-#Flask-SQLAlchemy
-#Flask-Migrate
+psycopg2
+Flask-SQLAlchemy
+Flask-Migrate

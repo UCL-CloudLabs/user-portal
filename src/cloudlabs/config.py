@@ -17,6 +17,8 @@ class Config:
     }
     SSO_LOGIN_URL = '/login'
     SSO_LOGIN_ENDPOINT = 'login'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'postgresql:///cloudlabs')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
 class DevConfig(Config):

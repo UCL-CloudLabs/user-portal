@@ -28,6 +28,29 @@ export FLASK_DEBUG=True
 export APP_SETTINGS=cloudlabs.config.DevConfig
 ```
 
+### Create a database and run migrations
+
+To set up the database and initial migration for the very first time:
+```bash
+flask db init
+# Review migrations folder manually, add to version control
+createdb --echo cloudlabs
+flask db migrate
+# Review migrations folder manually, add to version control
+flask db upgrade
+```
+
+To create a fresh database on a new (development) system:
+```bash
+createdb --echo cloudlabs
+```
+
+To apply any new migrations to prepare an existing database for use:
+```bash
+cd src
+flask db upgrade
+```
+
 ### Run the webapp
 
 ```bash
@@ -110,3 +133,6 @@ Visit https://staging.cloudlabs.rc.ucl.ac.uk/Shibboleth.sso/Metadata to get the 
 * Setting up Flask and mod_wsgi
     * http://flask.pocoo.org/docs/0.12/deploying/mod_wsgi/
     * http://modwsgi.readthedocs.io/en/develop/user-guides/virtual-environments.html
+* Flask & related extensions documentation
+    * http://flask-sqlalchemy.pocoo.org/2.1/quickstart/
+    * https://flask-migrate.readthedocs.io/en/latest/

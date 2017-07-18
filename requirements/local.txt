@@ -4,15 +4,24 @@
 #
 #    pip-compile --output-file local.txt local.in
 #
+alembic==0.9.3            # via flask-migrate
 blinker==1.4              # via flask-sso
 click==6.7                # via flask, pip-tools
 first==2.0.1              # via pip-tools
+flask-migrate==2.0.4
+flask-script==2.0.5       # via flask-migrate
+flask-sqlalchemy==2.2     # via flask-migrate
 flask-sso==0.4.0
 flask==0.12.1
 itsdangerous==0.24        # via flask
 jinja2==2.9.6             # via flask
-markupsafe==1.0           # via jinja2
+mako==1.0.7               # via alembic
+markupsafe==1.0           # via jinja2, mako
 pip-tools==1.9.0
+psycopg2==2.7.1
+python-dateutil==2.6.1    # via alembic
+python-editor==1.0.3      # via alembic
 requests==2.14.2
-six==1.10.0               # via flask-sso, pip-tools
+six==1.10.0               # via flask-sso, pip-tools, python-dateutil
+sqlalchemy==1.1.11        # via alembic, flask-sqlalchemy
 werkzeug==0.12.2          # via flask
