@@ -123,6 +123,24 @@ sudo /etc/init.d/shibd restart
 
 Visit https://staging.cloudlabs.rc.ucl.ac.uk/Shibboleth.sso/Metadata to get the metadata file to send to is-webteam@ucl.ac.uk.
 
+Set up database:
+
+```bash
+sudo apt-get install postgresql
+sudo -u postgres createuser -DRS cloudlabs-wsgi
+sudo -u postgres createdb -O cloudlabs-wsgi cloudlabs
+```
+
+Apply DB migrations:
+
+```bash
+export FLASK_APP=autoapp.py
+export DATABASE_URL=postgresql:///cloudlabs
+cd ~/user-portal/src
+source ../venv/bin/activate
+sudo -u cloudlabs-wsgi -E -- `which flask` db upgrade
+```
+
 
 ## Useful reference websites
 
@@ -136,3 +154,4 @@ Visit https://staging.cloudlabs.rc.ucl.ac.uk/Shibboleth.sso/Metadata to get the 
 * Flask & related extensions documentation
     * http://flask-sqlalchemy.pocoo.org/2.1/quickstart/
     * https://flask-migrate.readthedocs.io/en/latest/
+    * http://docs.sqlalchemy.org/en/latest/orm/tutorial.html
