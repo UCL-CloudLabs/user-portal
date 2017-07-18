@@ -3,6 +3,7 @@ from flask import (
     Blueprint,
     render_template,
 )
+from .models import Host, SshKey, User
 
 
 blueprint = Blueprint('main', __name__)
