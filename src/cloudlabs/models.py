@@ -51,3 +51,18 @@ class Host(Model):
     def __repr__(self):
         return '<Host: dns={}, user={}, label={}>'.format(
             self.dns_name, self.user, self.label)
+
+    @property
+    def link(self):
+        """The full URL to this host when deployed, for use in href attributes."""
+        return 'http://' + self.basic_url
+
+    @property
+    def basic_url(self):
+        """This host's URL without scheme, suitable for user display."""
+        return self.dns_name + '.cloudlabs.rc.ucl.ac.uk'
+
+    @property
+    def status(self):
+        """Whether this host is Running, Restarting, or Stopped."""
+        return 'Stopped'

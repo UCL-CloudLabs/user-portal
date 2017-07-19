@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block breadcrumb_links %}
+  {{ super() }}
+  <li class="breadcrumb__item">Profile</li>
+{% endblock breadcrumb_links %}
+
+{% block content %}
+  <h1>User settings for {{ user['display-name'] }}</h1>
+  <p>Here you can configure your SSH keys for logging in to deployed machines.</p>
+  <p>In the future you will also be able to link CloudLabs to your GitHub account so you can deploy from private repositories.</p>
+  <p>Visit the <a href="{{ url_for('main.index') }}">homepage</a> to view your existing machines or create new ones.</p>
+
+  <a class="btn" href="{{ url_for('main.add_key') }}">Add new public key</a>
+
+  {% if user.ssh_keys %}
+  <p>
+    Your existing public keys are shown below.
+    Note that deleting a key from this list will not remove it from existing virtual machines &mdash;
+    it will merely make it unavailable for selection when (re-)configuring a new or existing machine.
+  </p>
+  {% endif %}
+
+  {% for key in user.ssh_keys %}
+    <div class="ssh_key">
+      <h2>{{ key.label }}</h2>
+      <p>{{ key.public_key }}</p>
+      <a href="{{ url_for('main.delete_key', id=key.id) }}"><img src="{{ url_for('static', filename='img/delete.svg') }}" alt="Delete SSH key" class="action" /></a>
+    </div>
+  {% endfor %}
+
+{% endblock content %}

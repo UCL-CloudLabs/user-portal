@@ -1,7 +1,12 @@
 
 from flask import Flask
 
-from cloudlabs import context_processors, sso, views
+from cloudlabs import (
+    context_processors,
+    sso,
+    views,
+    views_host
+)
 from cloudlabs.extensions import db, migrate
 
 
@@ -13,5 +18,6 @@ def create_app(config_name):
     migrate.init_app(app, db)
     context_processors.setup(app)
     app.register_blueprint(views.blueprint)
+    app.register_blueprint(views_host.blueprint)
     sso.setup_login(app)
     return app

@@ -3,7 +3,7 @@ from flask import (
     Blueprint,
     render_template,
 )
-from .models import Host, SshKey, User
+from .models import SshKey, User
 
 
 blueprint = Blueprint('main', __name__)
@@ -16,4 +16,14 @@ def index():
 
 @blueprint.route('/profile')
 def profile():
+    return render_template('profile.html')
+
+
+@blueprint.route('/keys/add')
+def add_key():
+    return ''
+
+
+@blueprint.route('/keys/<int:id>/delete')
+def delete_key(id):
     return ''
