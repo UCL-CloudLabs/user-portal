@@ -41,3 +41,9 @@
 </table>
 
 <a class="btn" href="{{ url_for('host.add') }}">Add new host</a>
+
+{% if user.hosts.count() > 0 %}
+  <p class="text-right small cite">
+    Button icons designed by authors from Flaticon.
+  </p>
+{% endif %}
