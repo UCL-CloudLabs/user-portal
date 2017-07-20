@@ -31,8 +31,9 @@
         {% if host.status == 'Stopped' %}
           <a href="{{ url_for('host.control', id=host.id, action='start') }}"><img src="{{ url_for('static', filename='img/start.svg') }}" alt="Start virtual machine" class="action" /></a>
         {% endif %}
+        {# TODO: Add a 'Deploying' status with action to view log #}
         <a href="{{ url_for('host.edit', id=host.id) }}"><img src="{{ url_for('static', filename='img/configure.svg') }}" alt="Configure virtual machine') }}" class="action" /></a>
-        <a href="{{ url_for('host.download', id=host.id) }}"><img src="{{ url_for('static', filename='img/download.svg" alt="Download virtual machine image') }}" class="action" /></a>
+        <a href="{{ url_for('host.download', id=host.id) }}"><img src="{{ url_for('static', filename='img/download.svg') }}" alt="Download virtual machine image" class="action" /></a>
         <a href="{{ url_for('host.delete', id=host.id) }}"><img src="{{ url_for('static', filename='img/delete.svg') }}" alt="Delete virtual machine" class="action" /></a>
         <a href="{{ url_for('host.info', id=host.id) }}"><img src="{{ url_for('static', filename='img/info.svg') }}" alt="Show virtual machine info" class="action" /></a>
       </td>
