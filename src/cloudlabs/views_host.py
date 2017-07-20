@@ -1,5 +1,6 @@
 
 from flask import (
+    abort,
     Blueprint,
     flash,
     g,
@@ -56,8 +57,15 @@ def edit(id):
 
 
 @blueprint.route('/host/<int:id>/delete')
+@login_required
 def delete(id):
-    return ''
+    host = Host.query.get_or_404(id)
+    if host.user is not g.user:
+        abort(404)
+    label = host.label
+    host.delete()
+    flash('Virtual machine "{}" deleted'.format(label), 'success')
+    return redirect(url_for('main.index'))
 
 
 @blueprint.route('/host/<int:id>/control')
