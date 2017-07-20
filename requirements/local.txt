@@ -10,8 +10,9 @@ click==6.7                # via flask, pip-tools
 first==2.0.1              # via pip-tools
 flask-migrate==2.0.4
 flask-script==2.0.5       # via flask-migrate
-flask-sqlalchemy==2.2     # via flask-migrate
+flask-sqlalchemy==2.2
 flask-sso==0.4.0
+flask-wtf==0.14.2
 flask==0.12.1
 itsdangerous==0.24        # via flask
 jinja2==2.9.6             # via flask
@@ -25,3 +26,4 @@ requests==2.14.2
 six==1.10.0               # via flask-sso, pip-tools, python-dateutil
 sqlalchemy==1.1.11        # via alembic, flask-sqlalchemy
 werkzeug==0.12.2          # via flask
+wtforms==2.1              # via flask-wtf
