@@ -41,3 +41,9 @@
   <li class="breadcrumb__item"><a href="http://www.ucl.ac.uk/research-it-services">Research IT Services</a></li>
   <li class="breadcrumb__item"><a href="{{ url_for('main.index') }}">Self-serve Web Hosting for Research Applications</a></li>
 {% endblock breadcrumb_links %}
+
+
+{% block content_body %}
+  {% include "includes/_messages.html" %}
+  {{ super() }}
+{% endblock %}
