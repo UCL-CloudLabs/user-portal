@@ -88,3 +88,11 @@ class Host(Model):
     def status(self):
         """Whether this host is Running, Restarting, or Stopped."""
         return 'Stopped'
+
+    @property
+    def auth_type(self):
+        """Whether public key or password auth is used for this host."""
+        if self.admin_ssh_key:
+            return 'Public key'
+        else:
+            return 'Password'

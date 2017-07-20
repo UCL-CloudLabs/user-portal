@@ -23,7 +23,7 @@
 
   {% for key in user.ssh_keys %}
     <div class="box">
-      <h4>{{ key.label }}</h2>
+      <h4 id="key-{{ key.id }}">{{ key.label }}</h2>
       <p class="code">{{ key.public_key }}</p>
       <a href="{{ url_for('main.delete_key', id=key.id) }}"><img src="{{ url_for('static', filename='img/delete.svg') }}" alt="Delete SSH key" class="action" /></a>
     </div>
