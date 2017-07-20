@@ -1,5 +1,7 @@
-from flask import redirect, render_template, session, url_for
+from flask import redirect, render_template, request, session, url_for
 from flask_sso import SSO
+
+from .utils import setup_user
 
 
 def setup_login(app):
@@ -15,7 +17,7 @@ def setup_login(app):
 
     @app.context_processor
     def inject_user():
-        return {'user': session.get('user', None)}
+        return {'user': setup_user()}
 
 
 def setup_shib_login(app):
@@ -25,8 +27,9 @@ def setup_shib_login(app):
     @ext.login_handler
     def login_callback(user_info):
         """Store information in session."""
-        session['user'] = user_info
-        return redirect(url_for('main.index'))
+        setup_user(user_info)
+        target = request.args.get('target', url_for('main.index'))
+        return redirect(target)
 
     @ext.login_error_handler
     def login_error_callback(shib_attrs):
@@ -43,13 +46,14 @@ def setup_fake_login(app):
     """Setup a fake login handler that always logs in a test user."""
     @app.route('/login')
     def login():
-        session['user'] = {
+        setup_user({
             'eppn': 'userid@ucl.ac.uk',
-            'display-name': 'Test User',
+            'name': 'Test User',
             'upi': 'ABCDE12',
             'email': 'first.last@ucl.ac.uk',
-        }
-        return redirect(url_for('main.index'))
+        })
+        target = request.args.get('target', url_for('main.index'))
+        return redirect(target)
 
     @app.route('/logout')
     def logout():

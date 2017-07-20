@@ -11,7 +11,7 @@ class Config:
     SECRET_KEY = 'change-this'
     SSO_ATTRIBUTE_MAP = {
         'eppn': (True, 'eppn'),
-        'displayName': (True, 'display-name'),
+        'displayName': (True, 'name'),
         'employeeID': (True, 'upi'),
         'mail': (True, 'email'),
     }

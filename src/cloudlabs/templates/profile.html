@@ -6,7 +6,7 @@
 {% endblock breadcrumb_links %}
 
 {% block content %}
-  <h1>User settings for {{ user['display-name'] }}</h1>
+  <h1>User settings for {{ user['name'] }}</h1>
   <p>Here you can configure your SSH keys for logging in to deployed machines.</p>
   <p>In the future you will also be able to link CloudLabs to your GitHub account so you can deploy from private repositories.</p>
   <p>Visit the <a href="{{ url_for('main.index') }}">homepage</a> to view your existing machines or create new ones.</p>

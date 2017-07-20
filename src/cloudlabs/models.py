@@ -20,6 +20,28 @@ class User(Model):
         return '<User: upi={}, name={}>'.format(
             self.upi, self.name)
 
+    @classmethod
+    def get_or_create(cls, eppn, **kwargs):
+        """Find an existing user by ucl_id, or add a new one to the DB.
+
+        Used typically when a user logs in to find the corresponding DB entry.
+
+        Will update the user's UPI, name & email based on the latest Shibboleth data.
+        """
+        ucl_id, domain = eppn.split('@')
+        user = cls.query.filter_by(ucl_id=ucl_id).first()
+        if user is None:
+            user = cls.create(ucl_id=ucl_id, **kwargs)
+        else:
+            fields = ['name', 'email', 'upi']
+            updates = {}
+            for field in fields:
+                if kwargs[field] != getattr(user, field):
+                    updates[field] = kwargs[field]
+            if updates:
+                user.update(**updates)
+        return user
+
 
 class SshKey(Model):
     """Stores public SSH keys for each user."""
