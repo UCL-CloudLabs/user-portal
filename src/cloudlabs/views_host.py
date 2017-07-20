@@ -17,8 +17,11 @@ blueprint = Blueprint('host', __name__)
 
 
 @blueprint.route('/host/<int:id>')
+@login_required
 def info(id):
-    return ''
+    host = Host.query.get_or_404(id)
+    return render_template('not_implemented.html', host=host,
+                           thing='Displaying host info')
 
 
 @blueprint.route('/host/add', methods=('GET', 'POST'))
@@ -45,8 +48,11 @@ def add():
 
 
 @blueprint.route('/host/<int:id>/edit')
+@login_required
 def edit(id):
-    return ''
+    host = Host.query.get_or_404(id)
+    return render_template('not_implemented.html', host=host,
+                           thing='Editing hosts')
 
 
 @blueprint.route('/host/<int:id>/delete')
@@ -55,11 +61,21 @@ def delete(id):
 
 
 @blueprint.route('/host/<int:id>/control')
+@login_required
 def control(id):
     """Also takes `action` as a query parameter."""
-    return ''
+    action = request.args.get('action', '')
+    if action not in {'stop', 'start', 'restart'}:
+        flash('Unsupported action "{}"'.format(action), 'error')
+        return redirect(url_for('main.index'))
+    host = Host.query.get_or_404(id)
+    return render_template('not_implemented.html', host=host,
+                           thing='Running hosts')
 
 
 @blueprint.route('/host/<int:id>/download')
+@login_required
 def download(id):
-    return ''
+    host = Host.query.get_or_404(id)
+    return render_template('not_implemented.html', host=host,
+                           thing='Downloading host images')
