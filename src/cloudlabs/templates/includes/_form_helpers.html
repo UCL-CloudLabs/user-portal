@@ -1,0 +1,13 @@
+
+{% macro render_field(field) %}
+  {{ field.label }}
+  <img src="{{ url_for('static', filename='img/info.svg') }}" title="{{ field.description }}" class="inline" />
+  {{ field(class='form__control', **kwargs)|safe }}
+  {% if field.errors %}
+    <ul class="error">
+      {% for error in field.errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endmacro %}

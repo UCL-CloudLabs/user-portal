@@ -8,8 +8,14 @@ from ..models import SshKey
 
 class AddKeyForm(FlaskForm):
     """Form for adding a new SSH public key."""
-    label = StringField('Label', validators=[v.Length(min=2, max=SshKey.label.type.length)])
-    public_key = TextAreaField('Public key', validators=[v.DataRequired()])
+    label = StringField(
+        'Label',
+        description='A label to allow you to identify this key',
+        validators=[v.Length(min=2, max=SshKey.label.type.length)])
+    public_key = TextAreaField(
+        'Public key',
+        description='The public key itself, e.g. copied from ~/.ssh/id_rsa.pub',
+        validators=[v.DataRequired()])
 
     def validate_label(form, field):
         """Check a user doesn't duplicate labels."""
