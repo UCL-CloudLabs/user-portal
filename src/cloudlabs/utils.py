@@ -1,6 +1,8 @@
 from functools import wraps
 from flask import g, redirect, request, session, url_for
 
+from .models import User
+
 
 def login_required(view):
     """Decorator for views that ensures only logged-in users can see them."""
@@ -15,7 +17,6 @@ def login_required(view):
 
 def setup_user(user_info=None):
     """Sets up a user object based on info from the login system or session."""
-    from .models import User
     if user_info is None:
         # Try to find user info from the session
         user_info = session.get('user', None)

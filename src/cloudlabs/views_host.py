@@ -9,7 +9,7 @@ from flask import (
     url_for,
 )
 from .forms.add_host import AddHostForm
-from .models import Host, SshKey, User
+from .models import Host
 from .utils import login_required
 
 
