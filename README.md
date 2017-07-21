@@ -45,6 +45,12 @@ To create a fresh database on a new (development) system:
 createdb --echo cloudlabs
 ```
 
+To create new migrations if the models change:
+```bash
+flask db migrate
+# Review migrations folder manually, add to version control
+```
+
 To apply any new migrations to prepare an existing database for use:
 ```bash
 cd src

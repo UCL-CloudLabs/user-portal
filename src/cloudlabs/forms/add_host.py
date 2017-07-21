@@ -44,7 +44,7 @@ class AddHostForm(FlaskForm):
         description='Location of the git repository to clone on the new host.'
         ' It is assumed to contain a Dockerfile that will be built,'
         ' although this can be customised.',
-        validators=[v.DataRequired()])
+        validators=[v.Length(min=1, max=Host.git_repo.type.length)])
     port = IntegerField(
         'Port',
         description='Which port the web application should be exposed on.'

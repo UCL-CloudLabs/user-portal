@@ -72,9 +72,37 @@ class Host(Model):
     admin_ssh_key_id = db.Column(db.Integer, db.ForeignKey('ssh_key.id'), nullable=True)
     admin_ssh_key = db.relationship('SshKey', uselist=False)
 
+    # Details used just when initialising the host
+    git_repo = db.Column(db.String(1024))
+    port = db.Column(db.Integer)
+    setup_script = db.Column(db.Text)
+
     def __repr__(self):
         return '<Host: dns={}, user={}, label={}>'.format(
             self.dns_name, self.user, self.label)
+
+    def __init__(self, *args, **kwargs):
+        """Define a default setup_script as well as the supplied fields."""
+        if 'setup_script' not in kwargs and 'git_repo' in kwargs and 'port' in kwargs:
+            kwargs['setup_script'] = self.default_setup_script(**kwargs)
+        super(Host, self).__init__(*args, **kwargs)
+
+    def default_setup_script(self, **kwargs):
+        """Generate a default setup script for a new host.
+
+        Will try to clone a specified git repo and build the Dockerfile contained within.
+
+        :param git_repo: the git repository URL to clone on the host
+        :param port: the port to expose, which should match that used by the service defined
+            in the Dockerfile
+        """
+        return '\n'.join([
+            "sudo apt-get update",
+            "sudo apt-get install docker.io -y",
+            "git clone {git_repo} repo",
+            "cd repo",
+            "sudo docker build -t web-app .",
+            "sudo docker run -d -p {port}:{port} web-app"]).format(**kwargs)
 
     @property
     def link(self):
