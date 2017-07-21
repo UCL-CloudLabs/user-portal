@@ -1,3 +1,5 @@
+import json
+
 from .extensions import db
 from .database import Model
 
@@ -96,3 +98,37 @@ class Host(Model):
             return 'Public key'
         else:
             return 'Password'
+
+    @property
+    def parsed_state(self):
+        """Lazily parse the Terraform state as JSON when needed."""
+        if not hasattr(self, '_state'):
+            self._state = json.loads(self.terraform_state)
+        return self._state
+
+    @property
+    def vm_info(self):
+        """Extract our VM resource info from the Terraform state."""
+        resources = self.parsed_state['modules'][0]['resources']
+        return resources['azurerm_virtual_machine.vm']['primary']['attributes']
+
+    @property
+    def vm_id(self):
+        """Extract our VM resource info from the Terraform state."""
+        return self.vm_info['id']
+
+    @property
+    def vm_size(self):
+        return self.vm_info['vm_size']
+
+    @property
+    def os_info(self):
+        info = {'type': '', 'version': ''}
+        for key, value in self.vm_info.items():
+            if key.startswith('storage_image'):
+                if key.endswith('offer'):
+                    info['type'] = value
+                elif key.endswith('sku'):
+                    info['version'] = value
+        info = info['type'] + ' ' + info['version']
+        return info or 'Unknown'

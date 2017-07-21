@@ -41,8 +41,8 @@ def add():
             fields['admin_ssh_key_id'] = form.admin_ssh_key.data
         else:
             fields['admin_password'] = form.admin_password.data
-        # TODO: Creation script in fake Terraform state
-        Host.create(**fields)
+        new_host = Host.create(**fields)
+        fake_terraform_state(new_host)
         flash('Host "{}" added'.format(form.label.data), 'success')
         return redirect(url_for('main.index'))
     return render_template('add_host.html', form=form)
@@ -87,3 +87,12 @@ def download(id):
     host = Host.query.get_or_404(id)
     return render_template('not_implemented.html', host=host,
                            thing='Downloading host images')
+
+
+def fake_terraform_state(host):
+    """Temporary method for development purposes.
+
+    Since we don't link to deployment yet, creates a fake state file in the DB.
+    """
+    host.terraform_state = render_template('state.json', host=host)
+    host.save()
