@@ -1,3 +1,5 @@
+import json
+
 from .extensions import db
 from .database import Model
 
@@ -19,6 +21,28 @@ class User(Model):
     def __repr__(self):
         return '<User: upi={}, name={}>'.format(
             self.upi, self.name)
+
+    @classmethod
+    def get_or_create(cls, eppn, **kwargs):
+        """Find an existing user by ucl_id, or add a new one to the DB.
+
+        Used typically when a user logs in to find the corresponding DB entry.
+
+        Will update the user's UPI, name & email based on the latest Shibboleth data.
+        """
+        ucl_id, domain = eppn.split('@')
+        user = cls.query.filter_by(ucl_id=ucl_id).first()
+        if user is None:
+            user = cls.create(ucl_id=ucl_id, **kwargs)
+        else:
+            fields = ['name', 'email', 'upi']
+            updates = {}
+            for field in fields:
+                if kwargs[field] != getattr(user, field):
+                    updates[field] = kwargs[field]
+            if updates:
+                user.update(**updates)
+        return user
 
 
 class SshKey(Model):
@@ -48,6 +72,91 @@ class Host(Model):
     admin_ssh_key_id = db.Column(db.Integer, db.ForeignKey('ssh_key.id'), nullable=True)
     admin_ssh_key = db.relationship('SshKey', uselist=False)
 
+    # Details used just when initialising the host
+    git_repo = db.Column(db.String(1024))
+    port = db.Column(db.Integer)
+    setup_script = db.Column(db.Text)
+
     def __repr__(self):
         return '<Host: dns={}, user={}, label={}>'.format(
             self.dns_name, self.user, self.label)
+
+    def __init__(self, *args, **kwargs):
+        """Define a default setup_script as well as the supplied fields."""
+        if 'setup_script' not in kwargs and 'git_repo' in kwargs and 'port' in kwargs:
+            kwargs['setup_script'] = self.default_setup_script(**kwargs)
+        super(Host, self).__init__(*args, **kwargs)
+
+    def default_setup_script(self, **kwargs):
+        """Generate a default setup script for a new host.
+
+        Will try to clone a specified git repo and build the Dockerfile contained within.
+
+        :param git_repo: the git repository URL to clone on the host
+        :param port: the port to expose, which should match that used by the service defined
+            in the Dockerfile
+        """
+        return '\n'.join([
+            "sudo apt-get update",
+            "sudo apt-get install docker.io -y",
+            "git clone {git_repo} repo",
+            "cd repo",
+            "sudo docker build -t web-app .",
+            "sudo docker run -d -p {port}:{port} web-app"]).format(**kwargs)
+
+    @property
+    def link(self):
+        """The full URL to this host when deployed, for use in href attributes."""
+        return 'http://' + self.basic_url
+
+    @property
+    def basic_url(self):
+        """This host's URL without scheme, suitable for user display."""
+        return self.dns_name + '.cloudlabs.rc.ucl.ac.uk'
+
+    @property
+    def status(self):
+        """Whether this host is Running, Restarting, or Stopped."""
+        return 'Stopped'
+
+    @property
+    def auth_type(self):
+        """Whether public key or password auth is used for this host."""
+        if self.admin_ssh_key:
+            return 'Public key'
+        else:
+            return 'Password'
+
+    @property
+    def parsed_state(self):
+        """Lazily parse the Terraform state as JSON when needed."""
+        if not hasattr(self, '_state'):
+            self._state = json.loads(self.terraform_state)
+        return self._state
+
+    @property
+    def vm_info(self):
+        """Extract our VM resource info from the Terraform state."""
+        resources = self.parsed_state['modules'][0]['resources']
+        return resources['azurerm_virtual_machine.vm']['primary']['attributes']
+
+    @property
+    def vm_id(self):
+        """Extract our VM resource info from the Terraform state."""
+        return self.vm_info['id']
+
+    @property
+    def vm_size(self):
+        return self.vm_info['vm_size']
+
+    @property
+    def os_info(self):
+        info = {'type': '', 'version': ''}
+        for key, value in self.vm_info.items():
+            if key.startswith('storage_image'):
+                if key.endswith('offer'):
+                    info['type'] = value
+                elif key.endswith('sku'):
+                    info['version'] = value
+        info = info['type'] + ' ' + info['version']
+        return info or 'Unknown'

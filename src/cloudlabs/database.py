@@ -6,7 +6,7 @@ class CRUDMixin(object):
 
     @classmethod
     def create(cls, **kwargs):
-        """Create a new record and save it the database."""
+        """Create a new record and save it in the database."""
         instance = cls(**kwargs)
         return instance.save()
 

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% from "includes/_form_helpers.html" import render_field %}
+
+
+{% block breadcrumb_links %}
+  {{ super() }}
+  <li class="breadcrumb__item">New machine</li>
+{% endblock breadcrumb_links %}
+
+
+{% block content %}
+  <h1>Add new virtual machine for {{ user['name'] }}</h1>
+
+  <form method="POST" action="{{ url_for('host.add') }}">
+    {{ form.csrf_token }}
+    <fieldset>
+      <legend>Basic settings</legend>
+      {{ render_field(form.label) }}
+      {{ render_field(form.description) }}
+      {{ render_field(form.dns_name) }}
+    </fieldset>
+    <fieldset>
+      <legend>Admin account details</legend>
+      {{ render_field(form.admin_username) }}
+      {{ render_field(form.auth_type) }}
+      <div id="div__ssh_key">
+        {{ render_field(form.admin_ssh_key) }}
+      </div>
+      <div id="div__password">
+        {{ render_field(form.admin_password) }}
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Machine setup</legend>
+      {{ render_field(form.git_repo) }}
+      {{ render_field(form.port) }}
+    </fieldset>
+    <input type="submit" value="Add" />
+  </form>
+{% endblock content %}
+
+
+{% block scripts %}
+  {{ super() }}
+  {# TODO: Put this in a static JS file loaded with require() and using jQuery #}
+  <script>
+    var input__auth_type = document.getElementById('auth_type'),
+        div__ssh_key = document.getElementById('div__ssh_key'),
+        div__password = document.getElementById('div__password');
+    input__auth_type.onchange = function () {
+      var choice = input__auth_type.options[input__auth_type.selectedIndex].value;
+      if (choice == 'SSH') {
+        div__ssh_key.style.display = 'block';
+        div__password.style.display = 'none';
+      } else {
+        div__ssh_key.style.display = 'none';
+        div__password.style.display = 'block';
+      }
+    };
+    input__auth_type.onchange();
+  </script>
+{% endblock scripts %}

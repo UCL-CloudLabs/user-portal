@@ -1,6 +1,7 @@
 # Flask web framework
 Flask
 flask-sso
+Flask-WTF
 
 # For making http requests
 requests

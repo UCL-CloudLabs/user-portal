@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+
+{% block breadcrumb_links %}
+  {{ super() }}
+  <li class="breadcrumb__item">{{ host.label }}</li>
+{% endblock breadcrumb_links %}
+
+
+{% block content %}
+  <h1>Feature not yet implemented</h1>
+
+  <p>{{ thing }} is not yet implemented.</p>
+
+  <p>You can view <a href="{{ url_for('host.info', id=host.id) }}">information about this host</a>.</p>
+{% endblock content %}

@@ -30,7 +30,7 @@ export APP_SETTINGS=cloudlabs.config.DevConfig
 
 ### Create a database and run migrations
 
-To set up the database and initial migration for the very first time:
+To set up the database and initial migration for the very first time in this repo:
 ```bash
 flask db init
 # Review migrations folder manually, add to version control
@@ -43,6 +43,12 @@ flask db upgrade
 To create a fresh database on a new (development) system:
 ```bash
 createdb --echo cloudlabs
+```
+
+To create new migrations if the models change:
+```bash
+flask db migrate
+# Review migrations folder manually, add to version control
 ```
 
 To apply any new migrations to prepare an existing database for use:
