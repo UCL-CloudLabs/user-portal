@@ -21,8 +21,7 @@ blueprint = Blueprint('host', __name__)
 @login_required
 def info(id):
     host = Host.query.get_or_404(id)
-    return render_template('not_implemented.html', host=host,
-                           thing='Displaying host info')
+    return render_template('host_info.html', host=host)
 
 
 @blueprint.route('/host/add', methods=('GET', 'POST'))

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+
+{% block breadcrumb_links %}
+  {{ super() }}
+  <li class="breadcrumb__item">{{ host.label }}</li>
+{% endblock breadcrumb_links %}
+
+
+{% block content %}
+  <h1>Information about host '{{ host.label }}'</h1>
+
+  <dl>
+    <dt>URL</dt>
+    <dd><a href="{{ host.link }}">{{ host.basic_url }}</a></dd>
+
+    <dt>Last started</dt>
+    <dd>Unknown; TODO</dd>
+    <dt>Cloud provider</dt>
+    <dd>Microsoft Azure</dd>
+    <dt>VM size</dt>
+    <dd>{{ host.vm_size }}</dd>
+    <dt>Operating System</dt>
+    <dd>{{ host.os_info }}</dd>
+    <dt>Disk type</dt>
+    <dd>Unknown; TODO</dd>
+    <dt>Disk size</dt>
+    <dd>Unknown; TODO</dd>
+
+    <dt>Authentication type</dt>
+    <dd>
+      {{ host.auth_type }}:
+      {% if host.admin_ssh_key %}
+        <a href="{{ url_for('main.profile') }}#key-{{ host.admin_ssh_key.id }}">{{ host.admin_ssh_key.label }}</a>
+      {% else %}
+        <a onclick="show_password(this)">click to show</a>
+      {% endif %}
+    </dd>
+  </dl>
+{% endblock content %}
+
+
+{% block scripts %}
+  {{ super() }}
+  {# TODO: Put this in a static JS file loaded with require() and using jQuery #}
+  <script>
+    function show_password(elt) {
+        var pw = document.createElement('span');
+        pw.innerHTML = '{{ host.admin_password }}';
+        elt.parentNode.replaceChild(pw, elt);
+    }
+  </script>
+{% endblock scripts %}
