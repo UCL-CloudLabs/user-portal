@@ -102,7 +102,7 @@ class Host(Model):
             "git clone {git_repo} repo",
             "cd repo",
             "sudo docker build -t web-app .",
-            "sudo docker run -d -p {port}:{port} web-app"]).format(**kwargs)
+            "sudo docker run -d -e AZURE_URL={dns_name}.ukwest.cloudapp.azure.com -p {port}:{port} web-app"]).format(**kwargs)
 
     @property
     def link(self):

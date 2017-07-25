@@ -2,6 +2,7 @@
 from flask import (
     abort,
     Blueprint,
+    current_app,
     flash,
     g,
     redirect,
@@ -9,6 +10,7 @@ from flask import (
     request,
     url_for,
 )
+from .deployer.deployer import Deployer
 from .forms.add_host import AddHostForm
 from .models import Host
 from .utils import login_required
@@ -43,7 +45,7 @@ def add():
         else:
             fields['admin_password'] = form.admin_password.data
         new_host = Host.create(**fields)
-        fake_terraform_state(new_host)
+        deploy(new_host)
         flash('Host "{}" added'.format(form.label.data), 'success')
         return redirect(url_for('main.index'))
     return render_template('add_host.html', form=form)
@@ -90,10 +92,13 @@ def download(id):
                            thing='Downloading host images')
 
 
-def fake_terraform_state(host):
-    """Temporary method for development purposes.
+def deploy(host):
+    """Calls deployer to launch a VM.
 
-    Since we don't link to deployment yet, creates a fake state file in the DB.
+    If successful, adds the Terraform state file to the DB.
     """
-    host.terraform_state = render_template('state.json', host=host)
-    host.save()
+    deployer = Deployer(current_app.root_path)
+    deployer.deploy(host)
+
+    # host.terraform_state = render_template('state.json', host=host)
+    # host.save()

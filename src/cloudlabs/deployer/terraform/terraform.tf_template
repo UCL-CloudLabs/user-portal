@@ -1,3 +1,13 @@
+# Azure subscription variables
+variable "azure_subscription_id" {
+}
+variable "azure_client_id" {
+}
+variable "azure_client_secret" {
+}
+variable "azure_tenant_id" {
+}
+
 # Configure Azure provider
 provider "azurerm" {
   subscription_id = "${var.azure_subscription_id}"
@@ -8,7 +18,7 @@ provider "azurerm" {
 
 # create a resource group if it doesn't exist
 resource "azurerm_resource_group" "rg" {
-    name = "{{host.name}}rg"
+    name = "{{host.dns_name}}rg"
     location = "ukwest"
 }
 
@@ -35,7 +45,7 @@ resource "azurerm_public_ip" "ip" {
     location = "ukwest"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     public_ip_address_allocation = "dynamic"
-    domain_name_label = "{{host.dnsname}}"
+    domain_name_label = "{{host.dns_name}}"
 
     tags {
         environment = "staging"
@@ -59,7 +69,7 @@ resource "azurerm_network_interface" "ni" {
 
 # create storage account
 resource "azurerm_storage_account" "storage" {
-    name = "{{host.name}}sa"
+    name = "{{host.dns_name}}sa"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location = "ukwest"
     account_type = "Standard_LRS"
@@ -82,7 +92,7 @@ resource "azurerm_storage_container" "storagecont" {
 
 # create virtual machine
 resource "azurerm_virtual_machine" "vm" {
-    name = "{{host.name}}vm"
+    name = "{{host.dns_name}}vm"
     location = "ukwest"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     network_interface_ids = ["${azurerm_network_interface.ni.id}"]
@@ -103,36 +113,37 @@ resource "azurerm_virtual_machine" "vm" {
     }
 
     os_profile {
-        computer_name = "{{host.name}}"
-        admin_username = "{{host.username}}"
-        admin_password = "{{host.passwd}}"
+        computer_name = "{{host.dns_name}}"
+        admin_username = "{{host.admin_username}}"
+        {% if host.auth_type=="Password" %}
+        admin_password = "{{host.admin_password}}"
+        {% else %}
+        admin_password = "Password!123"
+        {% endif %}
     }
 
     os_profile_linux_config {
-      disable_password_authentication = false
+      disable_password_authentication = {% if host.auth_type=="Password" %}false{% else %}true{% endif %}
       ssh_keys = [{
-        path     = "/home/{{host.username}}/.ssh/authorized_keys"
-        key_data = "{{host.public_key}}"
+        path     = "/home/{{host.admin_username}}/.ssh/authorized_keys"
+        key_data = "{{host.admin_ssh_key.public_key}}"
       }]
     }
 
     connection {
-        host = "{{host.dnsname}}.ukwest.cloudapp.azure.com"
-        user = "{{host.username}}"
+        host = "{{host.dns_name}}.ukwest.cloudapp.azure.com"
+        user = "{{host.admin_username}}"
         type = "ssh"
-        private_key = "${file("{{host.private_key_path}}")}"
+        private_key = "${file("{{private_key_path}}")}"
         timeout = "1m"
         agent = false
     }
 
     provisioner "remote-exec" {
         inline = [
-          "sudo apt-get update",
-          "sudo apt-get install docker.io -y",
-          "git clone -b levine https://github.com/UCL-CloudLabs/docker-sample.git",
-          "cd docker-sample",
-          "sudo docker build -t research-webapp . ",
-          "sudo docker run -d -e AZURE_URL={{host.dnsname}}.ukwest.cloudapp.azure.com -p 5006:5006 research-webapp"
+          {% for line in host.setup_script.split('\n') %}
+          "{{ line }}",
+          {% endfor %}
         ]
     }
 

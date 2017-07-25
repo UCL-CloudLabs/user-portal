@@ -1,8 +1,9 @@
 import json
-from .host import Host
-from python_terraform import Terraform
+from flask import current_app
 from jinja2 import Template, TemplateNotFound, Environment, FileSystemLoader
 from pathlib import Path
+from python_terraform import Terraform
+from tempfile import TemporaryDirectory
 
 
 class Deployer:
@@ -21,10 +22,11 @@ class Deployer:
         '''
         Set python-terraform's instance with appropriate full path working dir.
         '''
-        p = Path(app_path, "deployer", "terraform")
-        self.app_path = app_path
-        self.tf_path = p.absolute()
-        self.tf = Terraform(working_dir=self.tf_path)
+        self.template_path = Path(app_path, "deployer", "terraform")
+        self.tempdir = TemporaryDirectory()
+        self.tfstate_path = self.tempdir.name
+        self.tf = Terraform(working_dir=self.tfstate_path)
+
 
     def _render(self, host):
         '''
@@ -33,9 +35,11 @@ class Deployer:
         folder.
         '''
         # try:
-        j2_env = Environment(loader=FileSystemLoader(str(self.tf_path)))
+        j2_env = Environment(loader=FileSystemLoader(str(self.template_path)))
         rendered_template = j2_env.get_template(
-                                    'terraform.tf_template').render(host=host)
+                'terraform.tf_template').render(
+                    host=host,
+                    private_key_path=current_app.config['PRIVATE_SSH_KEY_PATH'])
         # # except TemplateNotFound:
         #     print("Template terraform-main.tf_template not found in {}."
         #               .format(template_path))
@@ -45,7 +49,7 @@ class Deployer:
         print(rendered_template)
 
         # try:
-        with open(Path(self.tf_path, "terraform.tf"), "w") as f:
+        with open(Path(self.tfstate_path, "terraform.tf"), "w") as f:
                 f.write(rendered_template)
         # except:
         #     # TODO: replace with logging and maybe raise?
@@ -71,10 +75,11 @@ class Deployer:
             return ("Deployed! You can now SSH to it as "
                     "{}@{}.ukwest.cloudapp.azure.com. "
                     "Your website is deployed at."
-                    "http://{}.ukwest.cloudapp.azure.com:5000".format(
-                                                                host.username,
-                                                                host.dnsname,
-                                                                host.dnsname))
+                    "http://{}.ukwest.cloudapp.azure.com:{}".format(
+                                                        host.admin_username,
+                                                        host.dns_name,
+                                                        host.dns_name,
+                                                        host.port))
         else:
             # TODO raise
             return ("Something went wrong with the deployment: {}".format(
@@ -91,7 +96,7 @@ class Deployer:
         "terraform.tfstate". This is a JSON file that contains the list of
         resources deployed and their status.
         '''
-        tf_state = Path(self.tf_path, 'terraform.tfstate')
+        tf_state = Path(self.tempdir, 'terraform.tfstate')
 
         if tf_state.exists():
             if resource:
