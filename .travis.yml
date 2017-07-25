@@ -20,6 +20,7 @@ script:
   - |
     # Check if this is the PEP8 test instance and run pep8
     if [ -z "$PEP8" ]; then
+      cd src
       PYTHONPATH=. py.test -s
     else
       pycodestyle ./
