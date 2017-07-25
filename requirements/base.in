@@ -2,6 +2,7 @@
 Flask
 flask-sso
 Flask-WTF
+pathlib
 
 # For making http requests
 requests
@@ -10,3 +11,6 @@ requests
 psycopg2
 Flask-SQLAlchemy
 Flask-Migrate
+
+# Deployment
+python-terraform

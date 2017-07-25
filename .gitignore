@@ -8,9 +8,9 @@ __pycache__
 # Terraform stuff
 **/.cache
 **tfstate.backup
-**/terraform/*tfstate**
+**/terraform/*tfstate*
 **/terraform/terraform.tf
 
 # App secrets
-test/secrets.tar
-test/id*
+src/test/secrets.tar
+src/test/id*
