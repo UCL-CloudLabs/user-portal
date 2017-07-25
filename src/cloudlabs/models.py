@@ -102,12 +102,14 @@ class Host(Model):
             "git clone {git_repo} repo",
             "cd repo",
             "sudo docker build -t web-app .",
-            "sudo docker run -d -e AZURE_URL={dns_name}.ukwest.cloudapp.azure.com -p {port}:{port} web-app"]).format(**kwargs)
+            "sudo docker run -d -e AZURE_URL={dns_name}.ukwest.cloudapp.azure.com"
+            " -p {port}:{port} web-app"]).format(**kwargs)
 
     @property
     def link(self):
         """The full URL to this host when deployed, for use in href attributes."""
-        return 'http://' + self.basic_url
+        return 'http://{}.ukwest.cloudapp.azure.com:{}'.format(
+            self.dns_name, self.port)
 
     @property
     def basic_url(self):
