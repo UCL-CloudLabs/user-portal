@@ -1,7 +1,9 @@
+import os
 import requests
 from time import sleep
 from pathlib import Path
 from haikunator import Haikunator
+from cloudlabs.app import create_app
 from cloudlabs.deployer.deployer import Deployer
 from cloudlabs.deployer.host import Host
 
@@ -17,6 +19,8 @@ class TestDeployer:
         self.d = Deployer(Path('cloudlabs').absolute())
         self.resource_name = self._haikunate()
         self.dnsname = self._haikunate()
+        self.app = create_app(
+                        os.getenv('APP_SETTINGS', 'cloudlabs.config.Config'))
 
     def test_deployer_config(self):
         '''
