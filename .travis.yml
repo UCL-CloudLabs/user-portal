@@ -61,6 +61,8 @@ before_install:
 
 before_script:
   - |
+    cd src
     flask db init
     createdb --echo cloudlabs
     flask db migrate
+    cd -
