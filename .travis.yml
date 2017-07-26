@@ -57,6 +57,7 @@ before_install:
     cd src/test
     openssl aes-256-cbc -K $encrypted_4c1c35a4b00e_key -iv $encrypted_4c1c35a4b00e_iv -in secrets.tar.enc -out secrets.tar -d
     tar xvf secrets.tar
+    pwd
     cd -
 
 before_script:
