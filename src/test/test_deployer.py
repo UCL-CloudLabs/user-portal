@@ -15,11 +15,13 @@ class TestDeployer:
     '''
     @pytest.fixture
     def user(self):
+        ucl_id = self._haikunate()[0:7]
+        domain = self._haikunate('.')
         kwargs = {
-            'eppn': self._haikunate(),
-            'email': self._haikunate('@'),
+            'ucl_id': ucl_id,
+            'email': ucl_id + '@' + domain,
             'name': self._haikunate(),
-            'upi': self._haikunate()
+            'upi': ucl_id
         }
         User.create(**kwargs)
         return True
