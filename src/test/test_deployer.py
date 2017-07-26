@@ -25,7 +25,7 @@ class TestDeployer:
         return True
 
     @pytest.fixture
-    def ssh_key(self, resource_name, public_key):
+    def ssh_key(self, user, resource_name, public_key):
         SshKey.create(
             user_id=1,
             label=resource_name,
