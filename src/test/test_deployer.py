@@ -16,9 +16,9 @@ class TestDeployer:
     @pytest.fixture
     def user(self):
         kwargs = {
-            'eppn': self.haikunate(),
-            'email': self.haikunate('@'),
-            'name': self.haikunate(),
+            'eppn': self._haikunate(),
+            'email': self._haikunate('@'),
+            'name': self._haikunate(),
             'upi': self._haikunate()
         }
         User.create(**kwargs)
