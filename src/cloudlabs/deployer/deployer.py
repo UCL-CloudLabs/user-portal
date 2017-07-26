@@ -96,7 +96,7 @@ class Deployer:
         "terraform.tfstate". This is a JSON file that contains the list of
         resources deployed and their status.
         '''
-        tf_state = Path(self.tempdir, 'terraform.tfstate')
+        tf_state = Path(self.tempdir.name, 'terraform.tfstate')
 
         if tf_state.exists():
             if resource:
