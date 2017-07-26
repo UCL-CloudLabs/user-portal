@@ -1,52 +1,113 @@
 import os
 import requests
+import pytest
 from time import sleep
 from pathlib import Path
 from haikunator import Haikunator
 from cloudlabs.app import create_app
 from cloudlabs.deployer.deployer import Deployer
-from cloudlabs.deployer.host import Host
+from cloudlabs.models import Host, SshKey, User
 
 
 class TestDeployer:
     '''
     Test the app's Deployer class.
     '''
-    def setup_method(self):
-        '''
-        Before tests, create random name of resource groups and url prefix.
-        '''
-        self.d = Deployer(Path('cloudlabs').absolute())
-        self.resource_name = self._haikunate()
-        self.dnsname = self._haikunate()
-        self.app = create_app(
+    @pytest.fixture
+    def user(self):
+        kwargs = {
+            'eppn': self.haikunate(),
+            'email': self.haikunate('@'),
+            'name': self.haikunate(),
+            'upi': self._haikunate()
+        }
+        User.create(**kwargs)
+        return True
+
+    @pytest.fixture
+    def ssh_key(self, resource_name, public_key):
+        SshKey.create(
+            user_id=1,
+            label=resource_name,
+            public_key=public_key)
+        return True
+
+    @pytest.fixture
+    def deployer(self):
+        return Deployer(Path('cloudlabs').absolute())
+
+    @pytest.fixture
+    def resource_name(self):
+        return self._haikunate()
+
+    @pytest.fixture
+    def dnsname(self):
+        return self._haikunate()
+
+    @pytest.fixture
+    def app(self):
+        return create_app(
                         os.getenv('APP_SETTINGS', 'cloudlabs.config.Config'))
 
-    def test_deployer_config(self):
+    @pytest.fixture
+    def public_key(self):
+        '''
+        Read public key contents from encrypted file, ignore newline
+        '''
+        with open(Path('test/id_rsa_travis_azure.pub').absolute()) as f:
+            public_key = f.read().rstrip('\n')
+        return public_key
+
+    @pytest.fixture
+    def private_key_path(self):
+        return Path('test/id_rsa_travis_azure').absolute()
+
+    @pytest.fixture
+    def host(self, app, deployer, dnsname, public_key, private_key_path,
+             resource_name, ssh_key):
+        '''
+        Helper method to create a VM with randome username/passwd and test
+        SSH keys.
+        '''
+        # First we need to create a key with an ID so we can point to it
+        # TODO: create test DB setup?
+
+
+        fields = {
+            'user_id': 1,
+            'label': self._haikunate(),
+            'dns_name': dnsname,
+            'description': self._haikunate(),
+            'admin_username': self._haikunate(),
+            'terraform_state': self._haikunate(),
+            'git_repo':
+                'https://github.com/UCL-CloudLabs/docker-sample.git -b levine',
+            'port': 5006,
+            'admin_ssh_key_id': 3,
+            'admin_password': self._haikunate('!')
+        }
+        yield Host.create(**fields)
+        deployer.destroy()
+
+    def test_deployer_config(self, app, deployer):
         '''
         Check the path where the terraform files are is setup correctly.
         '''
-        assert self.d.template_path == Path('cloudlabs/deployer/terraform').absolute()
+        assert deployer.template_path == Path(
+                                    'cloudlabs/deployer/terraform').absolute()
 
-    def test_deployer(self):
+    def test_deployer(self, app, resource_name, deployer, dnsname, host):
         '''
         Create a test host with made up parameters, deploy on azure and ping.
         '''
-        self.d.deploy(self._create_host())
+        deployer.deploy(host)
         # Wait for 10 secs so we make sure app has had the time to be deployed.
         sleep(10)
         # Sample URL is exposing the webapp on port 5000
-        url = "http://{}.ukwest.cloudapp.azure.com:5006".format(self.dnsname)
+        url = "http://{}.ukwest.cloudapp.azure.com:5006".format(dnsname)
         # Check website is live
         response = requests.get(url)
         assert 200 == response.status_code
-
-    def teardown_method(self):
-        '''
-        Destroy test resources.
-        TODO: Destroy self.resource_name instead
-        '''
-        self.d.destroy()
 
     def _haikunate(self, delimiter=''):
         '''
@@ -54,22 +115,3 @@ class TestDeployer:
         '''
         haiku = Haikunator()
         return haiku.haikunate(delimiter=delimiter, token_length=3)
-
-    def _create_host(self):
-        '''
-        Helper method to create a VM with randome username/passwd and test
-        SSH keys.
-        '''
-        # Make up username/passwd within Azure restrictions
-        username = self._haikunate()
-        passwd = self._haikunate('!')
-
-        # Read public key contents from encrypted file, ignore newline
-        with open(Path('test/id_rsa_travis_azure.pub').absolute()) as f:
-            public_key = f.read().rstrip('\n')
-
-        # Path to private key
-        private_key_path = Path('test/id_rsa_travis_azure').absolute()
-        return Host(name=self.resource_name, dnsname=self.dnsname,
-                    username=username, passwd=passwd, public_key=public_key,
-                    private_key_path=private_key_path)
