@@ -1,5 +1,6 @@
 from datetime import datetime
 
+
 def setup(app):
     """Define context processors for the given app."""
 

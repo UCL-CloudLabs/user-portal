@@ -27,7 +27,6 @@ class Deployer:
         self.tfstate_path = self.tempdir.name
         self.tf = Terraform(working_dir=self.tfstate_path)
 
-
     def _render(self, host):
         '''
         Terraform's only possible target is a folder and not a file. So we
@@ -38,8 +37,8 @@ class Deployer:
         j2_env = Environment(loader=FileSystemLoader(str(self.template_path)))
         rendered_template = j2_env.get_template(
                 'terraform.tf_template').render(
-                    host=host,
-                    private_key_path=current_app.config['PRIVATE_SSH_KEY_PATH'])
+                host=host,
+                private_key_path=current_app.config['PRIVATE_SSH_KEY_PATH'])
         # # except TemplateNotFound:
         #     print("Template terraform-main.tf_template not found in {}."
         #               .format(template_path))

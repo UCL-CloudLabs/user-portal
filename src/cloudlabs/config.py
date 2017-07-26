@@ -17,10 +17,13 @@ class Config:
     }
     SSO_LOGIN_URL = '/login'
     SSO_LOGIN_ENDPOINT = 'login'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'postgresql:///cloudlabs')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL',
+                                             'postgresql:///cloudlabs')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # Default to travis config
-    PRIVATE_SSH_KEY_PATH = os.environ.get('PRIVATE_SSH_KEY_PATH', '~/build/UCL-CloudLabs/user-portal/src/test/id_rsa_travis_azure')
+    PRIVATE_SSH_KEY_PATH = os.environ.get(
+            'PRIVATE_SSH_KEY_PATH',
+            '~/build/UCL-CloudLabs/user-portal/src/test/id_rsa_travis_azure')
 
 
 class DevConfig(Config):

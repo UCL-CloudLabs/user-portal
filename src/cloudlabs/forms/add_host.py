@@ -1,6 +1,11 @@
 from flask import g
 from flask_wtf import FlaskForm
-from wtforms.fields import IntegerField, SelectField, StringField, TextAreaField
+from wtforms.fields import (
+    IntegerField,
+    SelectField,
+    StringField,
+    TextAreaField
+)
 import wtforms.validators as v
 
 from ..models import Host, SshKey
@@ -14,11 +19,13 @@ class AddHostForm(FlaskForm):
         validators=[v.Length(min=2, max=Host.label.type.length)])
     description = TextAreaField(
         'Description',
-        description='A longer description of the host, purely for your own benefit',
+        description='A longer description of the host, purely for your own '
+                    'benefit',
         validators=[v.Optional()])
     dns_name = StringField(
         'URL',
-        description='The canonical DNS name for this host, which must be globally unique',
+        description='The canonical DNS name for this host, which must be '
+                    'globally unique',
         validators=[v.Length(min=1, max=Host.dns_name.type.length)])
 
     admin_username = StringField(
@@ -27,17 +34,21 @@ class AddHostForm(FlaskForm):
         validators=[v.Length(min=1, max=Host.admin_username.type.length)])
     auth_type = SelectField(
         'Authentication type',
-        description='How the admin user should be authenticated when logging in via SSH',
+        description='How the admin user should be authenticated when logging '
+                    'in via SSH',
         choices=[('SSH', 'SSH public key'), ('Password', 'Password')])
     admin_ssh_key = SelectField(
         'SSH public key',
-        description='Which of your pre-configured SSH public keys to use for logging in.'
+        description='Which of your pre-configured SSH public keys to use for '
+                    'logging in.'
         ' Set up further keys by visiting your profile page.',
         coerce=int)
     admin_password = StringField(
         'Admin password',
         description='Password to use for the admin user on this host',
-        validators=[v.Optional(), v.Length(min=12, max=Host.admin_password.type.length)])
+        validators=[v.Optional(), v.Length(min=12,
+                                           max=Host.admin_password.type.length
+                                           )])
 
     git_repo = StringField(
         'Git repository',
@@ -57,16 +68,20 @@ class AddHostForm(FlaskForm):
         """Check a user doesn't duplicate labels."""
         label = field.data.strip()
         if Host.query.filter_by(user_id=g.user.id, label=label).count() > 0:
-            raise v.ValidationError('You must choose a unique label for each host')
+            raise v.ValidationError('You must choose a unique label for each '
+                                    'host')
 
     def validate_dns_name(form, field):
         """DNS names must be globally unique."""
         dns_name = field.data.strip()
         if Host.query.filter_by(dns_name=dns_name).count() > 0:
-            raise v.ValidationError('The URL {} has already been taken'.format(dns_name))
+            raise v.ValidationError('The URL {} has already '
+                                    'been taken'.format(dns_name))
 
     def validate_admin_ssh_key(form, field):
         """The user must pick one of their keys."""
         key_id = field.data
-        if key_id and SshKey.query.filter_by(user_id=g.user.id, id=key_id).count() == 0:
-            raise v.ValidationError('You must select one of your pre-configured SSH keys')
+        if key_id and SshKey.query.filter_by(user_id=g.user.id,
+                                             id=key_id).count() == 0:
+            raise v.ValidationError(
+                        'You must select one of your pre-configured SSH keys')

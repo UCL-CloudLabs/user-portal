@@ -74,7 +74,6 @@ class TestDeployer:
         # First we need to create a key with an ID so we can point to it
         # TODO: create test DB setup?
 
-
         fields = {
             'user_id': 1,
             'label': self._haikunate(),
