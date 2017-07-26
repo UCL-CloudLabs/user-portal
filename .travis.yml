@@ -63,6 +63,6 @@ before_script:
   - |
     cd src
     createdb --echo cloudlabs
-    flask db update
+    flask db upgrade
     flask db migrate
     cd -
