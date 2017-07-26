@@ -26,7 +26,7 @@ class TestDeployer:
         '''
         Check the path where the terraform files are is setup correctly.
         '''
-        assert self.d.tf_path == Path('cloudlabs/deployer/terraform').absolute()
+        assert self.d.template_path == Path('cloudlabs/deployer/terraform').absolute()
 
     def test_deployer(self):
         '''
