@@ -85,7 +85,7 @@ class TestDeployer:
             'git_repo':
                 'https://github.com/UCL-CloudLabs/docker-sample.git -b levine',
             'port': 5006,
-            'admin_ssh_key_id': 3,
+            'admin_ssh_key_id': 1,
             'admin_password': self._haikunate('!')
         }
         yield Host.create(**fields)
