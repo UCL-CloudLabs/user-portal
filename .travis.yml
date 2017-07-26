@@ -5,8 +5,15 @@ language: python
 matrix:
   include:
     - python: '3.6'
+      env:
+        - FLASK_APP=autoapp.py
+        - FLASK_DEBUG=True
+        - APP_SETTINGS=cloudlabs.config.DevConfig
     - python: '3.6'
       env: PEP8=1
+
+services:
+  - postgresql
 
 install:
   - pip install -r requirements/local.txt
@@ -51,3 +58,9 @@ before_install:
     openssl aes-256-cbc -K $encrypted_4c1c35a4b00e_key -iv $encrypted_4c1c35a4b00e_iv -in secrets.tar.enc -out secrets.tar -d
     tar xvf secrets.tar
     cd -
+
+before_script:
+  - |
+    flask db init
+    createdb --echo cloudlabs
+    flask db migrate
