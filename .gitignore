@@ -3,4 +3,14 @@
 
 # Python stuff
 __pycache__
+**.pyc
 
+# Terraform stuff
+**/.cache
+**tfstate.backup
+**/terraform/*tfstate*
+**/terraform/terraform.tf
+
+# App secrets
+src/test/secrets.tar
+src/test/id*
