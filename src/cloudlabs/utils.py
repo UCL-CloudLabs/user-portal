@@ -25,6 +25,7 @@ def setup_user(user_info=None):
     if not user_info:
         g.user = None
     else:
-        kwargs = {field: user_info[field] for field in ['eppn', 'email', 'name', 'upi']}
+        kwargs = {field: user_info[field] for field in ['eppn', 'email',
+                                                        'name', 'upi']}
         g.user = User.get_or_create(**kwargs)
     return g.user

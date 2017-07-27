@@ -15,12 +15,13 @@ class User(Model):
     # Azure child subscription ID
     # subscription_id = db.Column(db.String())
 
-    ssh_keys = db.relationship('SshKey', backref='user', order_by='SshKey.label')
-    hosts = db.relationship('Host', backref='user', lazy='dynamic', order_by='Host.label')
+    ssh_keys = db.relationship('SshKey', backref='user',
+                               order_by='SshKey.label')
+    hosts = db.relationship('Host', backref='user', lazy='dynamic',
+                            order_by='Host.label')
 
     def __repr__(self):
-        return '<User: upi={}, name={}>'.format(
-            self.upi, self.name)
+        return '<User: upi={}, name={}>'.format(self.upi, self.name)
 
     @classmethod
     def get_or_create(cls, eppn, **kwargs):
@@ -28,7 +29,8 @@ class User(Model):
 
         Used typically when a user logs in to find the corresponding DB entry.
 
-        Will update the user's UPI, name & email based on the latest Shibboleth data.
+        Will update the user's UPI, name & email based on the latest Shibboleth
+        data.
         """
         ucl_id, domain = eppn.split('@')
         user = cls.query.filter_by(ucl_id=ucl_id).first()
@@ -61,7 +63,8 @@ class SshKey(Model):
 class Host(Model):
     """Stores details of virtual hosts created by CloudLabs."""
     id = db.Column(db.Integer, primary_key=True)
-    dns_name = db.Column(db.String(50), unique=True, index=True, nullable=False)
+    dns_name = db.Column(db.String(50), unique=True, index=True,
+                         nullable=False)
     label = db.Column(db.String(50), nullable=False)
     description = db.Column(db.Text)
     admin_username = db.Column(db.String(50), nullable=False)
@@ -69,7 +72,8 @@ class Host(Model):
     terraform_state = db.Column(db.Text)  # Could use JSON type???
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    admin_ssh_key_id = db.Column(db.Integer, db.ForeignKey('ssh_key.id'), nullable=True)
+    admin_ssh_key_id = db.Column(db.Integer, db.ForeignKey('ssh_key.id'),
+                                 nullable=True)
     admin_ssh_key = db.relationship('SshKey', uselist=False)
 
     # Details used just when initialising the host
@@ -83,18 +87,20 @@ class Host(Model):
 
     def __init__(self, *args, **kwargs):
         """Define a default setup_script as well as the supplied fields."""
-        if 'setup_script' not in kwargs and 'git_repo' in kwargs and 'port' in kwargs:
+        if ('setup_script' not in kwargs and 'git_repo' in kwargs
+            and 'port' in kwargs):
             kwargs['setup_script'] = self.default_setup_script(**kwargs)
         super(Host, self).__init__(*args, **kwargs)
 
     def default_setup_script(self, **kwargs):
         """Generate a default setup script for a new host.
 
-        Will try to clone a specified git repo and build the Dockerfile contained within.
+        Will try to clone a specified git repo and build the Dockerfile
+        contained within.
 
         :param git_repo: the git repository URL to clone on the host
-        :param port: the port to expose, which should match that used by the service defined
-            in the Dockerfile
+        :param port: the port to expose, which should match that used by the
+                     service defined in the Dockerfile
         """
         return '\n'.join([
             "sudo apt-get update",
@@ -102,14 +108,15 @@ class Host(Model):
             "git clone {git_repo} repo",
             "cd repo",
             "sudo docker build -t web-app .",
-            "sudo docker run -d -e AZURE_URL={dns_name}.ukwest.cloudapp.azure.com"
-            " -p {port}:{port} web-app"]).format(**kwargs)
+            ("sudo docker run -d -e "
+             "AZURE_URL={dns_name}.ukwest.cloudapp.azure.com -p {port}:{port}"
+             " web-app")]).format(**kwargs)
 
     @property
     def link(self):
-        """The full URL to this host when deployed, for use in href attributes."""
-        return 'http://{}.ukwest.cloudapp.azure.com:{}'.format(
-            self.dns_name, self.port)
+        """The full URL to this host when deployed, for use in href
+           attributes."""
+        return 'http://' + self.basic_url
 
     @property
     def basic_url(self):

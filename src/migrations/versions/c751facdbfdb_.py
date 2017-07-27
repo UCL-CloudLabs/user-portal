@@ -1,7 +1,7 @@
 """empty message
 
 Revision ID: c751facdbfdb
-Revises: 
+Revises:
 Create Date: 2017-07-18 14:47:37.179476
 
 """
@@ -54,7 +54,8 @@ def upgrade():
         sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_host_dns_name'), 'host', ['dns_name'], unique=True)
+    op.create_index(op.f('ix_host_dns_name'), 'host', ['dns_name'],
+                    unique=True)
     # ### end Alembic commands ###
 
 

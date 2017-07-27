@@ -31,12 +31,14 @@ def info(id):
 def add():
     form = AddHostForm()
     # Fill in options for SSH key
-    form.admin_ssh_key.choices = [(key.id, key.label) for key in g.user.ssh_keys]
+    form.admin_ssh_key.choices = [(key.id, key.label)
+                                  for key in g.user.ssh_keys]
     if form.validate_on_submit():
         fields = {
             'user_id': g.user.id,
         }
-        for field in ['label', 'dns_name', 'description', 'admin_username', 'git_repo']:
+        for field in ['label', 'dns_name', 'description', 'admin_username',
+                      'git_repo']:
             fields[field] = form[field].data.strip()
         for field in ['port']:
             fields[field] = form[field].data
