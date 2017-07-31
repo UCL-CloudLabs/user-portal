@@ -1,0 +1,16 @@
+# Flask web framework
+Flask
+flask-sso
+Flask-WTF
+pathlib
+
+# For making http requests
+requests
+
+# Database connection
+psycopg2
+Flask-SQLAlchemy
+Flask-Migrate
+
+# Deployment
+python-terraform

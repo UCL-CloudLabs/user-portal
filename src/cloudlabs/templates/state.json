@@ -1,0 +1,253 @@
+{# Fake Terraform state file template for testing purposes #}
+
+{
+    "version": 3,
+    "terraform_version": "0.9.11",
+    "serial": 0,
+    "lineage": "",
+    "modules": [
+        {
+            "path": [
+                "root"
+            ],
+            "outputs": {},
+            "resources": {
+                "azurerm_network_interface.ni": {
+                    "type": "azurerm_network_interface",
+                    "depends_on": [
+                        "azurerm_public_ip.ip",
+                        "azurerm_resource_group.rg",
+                        "azurerm_subnet.subnet"
+                    ],
+                    "primary": {
+                        "id": "tfni",
+                        "attributes": {
+                            "applied_dns_servers.#": "0",
+                            "dns_servers.#": "0",
+                            "enable_ip_forwarding": "false",
+                            "id": "tfni",
+                            "ip_configuration.#": "1",
+                            "ip_configuration.3409153939.load_balancer_backend_address_pools_ids.#": "0",
+                            "ip_configuration.3409153939.load_balancer_inbound_nat_rules_ids.#": "0",
+                            "ip_configuration.3409153939.name": "ipconfiguration",
+                            "ip_configuration.3409153939.private_ip_address": "10.0.2.5",
+                            "ip_configuration.3409153939.private_ip_address_allocation": "static",
+                            "ip_configuration.3409153939.public_ip_address_id": "tfip",
+                            "ip_configuration.3409153939.subnet_id": "tfsub",
+                            "location": "ukwest",
+                            "name": "tfni",
+                            "private_ip_address": "10.0.2.5",
+                            "resource_group_name": "{{host.dns_name}}rg",
+                            "tags.%": "0"
+                        },
+                        "meta": {},
+                        "tainted": false
+                    },
+                    "deposed": [],
+                    "provider": ""
+                },
+                "azurerm_public_ip.ip": {
+                    "type": "azurerm_public_ip",
+                    "depends_on": [
+                        "azurerm_resource_group.rg"
+                    ],
+                    "primary": {
+                        "id": "tfip",
+                        "attributes": {
+                            "domain_name_label": "{{host.dns_name}}",
+                            "fqdn": "{{host.dns_name}}.ukwest.cloudapp.azure.com",
+                            "id": "tfip",
+                            "location": "ukwest",
+                            "name": "tfip",
+                            "public_ip_address_allocation": "dynamic",
+                            "resource_group_name": "{{host.dns_name}}rg",
+                            "tags.%": "1",
+                            "tags.environment": "staging"
+                        },
+                        "meta": {},
+                        "tainted": false
+                    },
+                    "deposed": [],
+                    "provider": ""
+                },
+                "azurerm_resource_group.rg": {
+                    "type": "azurerm_resource_group",
+                    "depends_on": [],
+                    "primary": {
+                        "id": "{{host.dns_name}}rg",
+                        "attributes": {
+                            "id": "{{host.dns_name}}rg",
+                            "location": "ukwest",
+                            "name": "{{host.dns_name}}rg",
+                            "tags.%": "0"
+                        },
+                        "meta": {},
+                        "tainted": false
+                    },
+                    "deposed": [],
+                    "provider": ""
+                },
+                "azurerm_storage_account.storage": {
+                    "type": "azurerm_storage_account",
+                    "depends_on": [
+                        "azurerm_resource_group.rg"
+                    ],
+                    "primary": {
+                        "id": "{{host.dns_name}}storage",
+                        "attributes": {
+                            "account_kind": "Storage",
+                            "account_type": "Standard_LRS",
+                            "id": "{{host.dns_name}}storage",
+                            "location": "ukwest",
+                            "name": "{{host.dns_name}}storage",
+                            "primary_access_key": "RANDOM",
+                            "primary_blob_endpoint": "https://{{host.dns_name}}storage.blob.core.windows.net/",
+                            "primary_file_endpoint": "https://{{host.dns_name}}storage.file.core.windows.net/",
+                            "primary_location": "ukwest",
+                            "primary_queue_endpoint": "https://{{host.dns_name}}storage.queue.core.windows.net/",
+                            "primary_table_endpoint": "https://{{host.dns_name}}storage.table.core.windows.net/",
+                            "resource_group_name": "{{host.dns_name}}rg",
+                            "secondary_access_key": "RANDOM",
+                            "secondary_location": "",
+                            "tags.%": "1",
+                            "tags.environment": "staging"
+                        },
+                        "meta": {},
+                        "tainted": false
+                    },
+                    "deposed": [],
+                    "provider": ""
+                },
+                "azurerm_storage_container.storagecont": {
+                    "type": "azurerm_storage_container",
+                    "depends_on": [
+                        "azurerm_resource_group.rg",
+                        "azurerm_storage_account.storage"
+                    ],
+                    "primary": {
+                        "id": "vhd",
+                        "attributes": {
+                            "container_access_type": "private",
+                            "id": "vhd",
+                            "name": "vhd",
+                            "properties.%": "4",
+                            "properties.last_modified": "Sat, 15 Jul 2017 14:54:50 GMT",
+                            "properties.lease_duration": "",
+                            "properties.lease_state": "available",
+                            "properties.lease_status": "unlocked",
+                            "resource_group_name": "{{host.dns_name}}rg",
+                            "storage_account_name": "{{host.dns_name}}storage"
+                        },
+                        "meta": {},
+                        "tainted": false
+                    },
+                    "deposed": [],
+                    "provider": ""
+                },
+                "azurerm_subnet.subnet": {
+                    "type": "azurerm_subnet",
+                    "depends_on": [
+                        "azurerm_resource_group.rg",
+                        "azurerm_virtual_network.vnet"
+                    ],
+                    "primary": {
+                        "id": "tfsub",
+                        "attributes": {
+                            "address_prefix": "10.0.2.0/24",
+                            "id": "tfsub",
+                            "ip_configurations.#": "0",
+                            "name": "tfsub",
+                            "resource_group_name": "{{host.dns_name}}rg",
+                            "virtual_network_name": "tfvnet"
+                        },
+                        "meta": {},
+                        "tainted": false
+                    },
+                    "deposed": [],
+                    "provider": ""
+                },
+                "azurerm_virtual_machine.vm": {
+                    "type": "azurerm_virtual_machine",
+                    "depends_on": [
+                        "azurerm_network_interface.ni",
+                        "azurerm_resource_group.rg",
+                        "azurerm_storage_account.storage",
+                        "azurerm_storage_container.storagecont"
+                    ],
+                    "primary": {
+                        "id": "{{host.dns_name}}vm",
+                        "attributes": {
+                            "delete_data_disks_on_termination": "false",
+                            "delete_os_disk_on_termination": "false",
+                            "id": "{{host.dns_name}}vm",
+                            "location": "ukwest",
+                            "name": "{{host.dns_name}}vm",
+                            "network_interface_ids.#": "1",
+                            "network_interface_ids.824328791": "tfni",
+                            "os_profile.#": "1",
+                            "os_profile.2581016314.admin_password": "{{host.admin_password}}",
+                            "os_profile.2581016314.admin_username": "{{host.admin_username}}",
+                            "os_profile.2581016314.computer_name": "{{host.dns_name}}",
+                            "os_profile.2581016314.custom_data": "",
+                            "os_profile_linux_config.#": "1",
+                            "os_profile_linux_config.2972667452.disable_password_authentication": "false",
+                            "os_profile_linux_config.2972667452.ssh_keys.#": "1",
+                            "os_profile_linux_config.2972667452.ssh_keys.0.key_data": "{{host.admin_ssh_key.public_key}}",
+                            "os_profile_linux_config.2972667452.ssh_keys.0.path": "/home/{{host.admin_username}}/.ssh/authorized_keys",
+                            "os_profile_secrets.#": "0",
+                            "resource_group_name": "{{host.dns_name}}rg",
+                            "storage_data_disk.#": "0",
+                            "storage_image_reference.#": "1",
+                            "storage_image_reference.1222634046.offer": "UbuntuServer",
+                            "storage_image_reference.1222634046.publisher": "Canonical",
+                            "storage_image_reference.1222634046.sku": "16.04-LTS",
+                            "storage_image_reference.1222634046.version": "latest",
+                            "storage_os_disk.#": "1",
+                            "storage_os_disk.3786885250.caching": "ReadWrite",
+                            "storage_os_disk.3786885250.create_option": "FromImage",
+                            "storage_os_disk.3786885250.disk_size_gb": "0",
+                            "storage_os_disk.3786885250.image_uri": "",
+                            "storage_os_disk.3786885250.managed_disk_id": "",
+                            "storage_os_disk.3786885250.managed_disk_type": "",
+                            "storage_os_disk.3786885250.name": "myosdisk",
+                            "storage_os_disk.3786885250.os_type": "",
+                            "storage_os_disk.3786885250.vhd_uri": "https://{{host.dns_name}}storage.blob.core.windows.net/vhd/myosdisk.vhd",
+                            "tags.%": "1",
+                            "tags.environment": "staging",
+                            "vm_size": "Standard_A0"
+                        },
+                        "meta": {},
+                        "tainted": false
+                    },
+                    "deposed": [],
+                    "provider": ""
+                },
+                "azurerm_virtual_network.vnet": {
+                    "type": "azurerm_virtual_network",
+                    "depends_on": [
+                        "azurerm_resource_group.rg"
+                    ],
+                    "primary": {
+                        "id": "tfvnet",
+                        "attributes": {
+                            "address_space.#": "1",
+                            "address_space.0": "10.0.0.0/16",
+                            "dns_servers.#": "0",
+                            "id": "tfvnet",
+                            "location": "ukwest",
+                            "name": "tfvnet",
+                            "resource_group_name": "{{host.dns_name}}rg",
+                            "subnet.#": "0",
+                            "tags.%": "0"
+                        },
+                        "meta": {},
+                        "tainted": false
+                    },
+                    "deposed": [],
+                    "provider": ""
+                }
+            },
+            "depends_on": []
+        }
+    ]
+}
