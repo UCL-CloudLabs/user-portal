@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% from "includes/_form_helpers.html" import render_field %}
+
+{% block content %}
+  <form method="POST" action="{{ url_for('host.customize_setup') }}">
+    {{ form.csrf_token }}
+    {{ form.hidden_tag() }}
+    {% for it in form if it.widget.input_type != 'hidden' %}
+    	{{ render_field(it) }}
+    {% endfor %}
+    <input type="submit" value="Save" />
+  </form>
+{% endblock content %}
