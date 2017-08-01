@@ -12,6 +12,7 @@ from flask import (
 )
 from .deployer.deployer import Deployer
 from .forms.add_host import AddHostForm
+from .forms.customise_setup import CustomiseSetupForm
 from .models import Host
 from .utils import login_required
 
@@ -34,9 +35,7 @@ def add():
     form.admin_ssh_key.choices = [(key.id, key.label)
                                   for key in g.user.ssh_keys]
     if form.validate_on_submit():
-        fields = {
-            'user_id': g.user.id,
-        }
+        fields = {'user_id': g.user.id}
         for field in ['label', 'dns_name', 'description', 'admin_username',
                       'git_repo']:
             fields[field] = form[field].data.strip()
@@ -46,11 +45,34 @@ def add():
             fields['admin_ssh_key_id'] = form.admin_ssh_key.data
         else:
             fields['admin_password'] = form.admin_password.data
-        new_host = Host.create(**fields)
-        deploy(new_host)
-        flash('Host "{}" added'.format(form.label.data), 'success')
-        return redirect(url_for('main.index'))
+        if request.form.get('action', None) == 'Customise setup script':
+            custom_form = CustomiseSetupForm()
+            db_host = Host.create(**fields)
+            custom_form.id.data = db_host.id
+            custom_form.setup_script.data = db_host.setup_script
+            return render_template('setup_script.html', form=custom_form)
+
+        else:
+            new_host = Host.create(**fields)
+            deploy(new_host)
+            flash('Host "{}" added'.format(form.label.data), 'success')
+            return redirect(url_for('main.index'))
+
     return render_template('add_host.html', form=form)
+
+
+@blueprint.route('/host/add/customise', methods=('GET', 'POST'))
+@login_required
+def customise_setup():
+    form = CustomiseSetupForm()
+    if form.validate_on_submit():
+        # Save the updated setup script
+        host = Host.query.get_or_404(form.id.data)
+        host.update(setup_script=form.setup_script.data)
+        deploy(host)
+        flash('Host "{}" added'.format(host.label), 'success')
+
+    return redirect(url_for('main.index'))
 
 
 @blueprint.route('/host/<int:id>/edit')

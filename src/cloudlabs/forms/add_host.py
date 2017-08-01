@@ -13,15 +13,18 @@ from ..models import Host, SshKey
 
 class AddHostForm(FlaskForm):
     """Form for adding a new virtual host."""
+
     label = StringField(
         'Label',
         description='A short label for you to identify this host easily',
         validators=[v.Length(min=2, max=Host.label.type.length)])
+
     description = TextAreaField(
         'Description',
         description='A longer description of the host, purely for your own '
                     'benefit',
         validators=[v.Optional()])
+
     dns_name = StringField(
         'URL',
         description='The canonical DNS name for this host, which must be '
@@ -32,17 +35,20 @@ class AddHostForm(FlaskForm):
         'Admin username',
         description='Username of the admin user to be created on the new host',
         validators=[v.Length(min=1, max=Host.admin_username.type.length)])
+
     auth_type = SelectField(
         'Authentication type',
         description='How the admin user should be authenticated when logging '
                     'in via SSH',
         choices=[('SSH', 'SSH public key'), ('Password', 'Password')])
+
     admin_ssh_key = SelectField(
         'SSH public key',
         description='Which of your pre-configured SSH public keys to use for '
                     'logging in.'
         ' Set up further keys by visiting your profile page.',
         coerce=int)
+
     admin_password = StringField(
         'Admin password',
         description='Password to use for the admin user on this host',
@@ -56,6 +62,7 @@ class AddHostForm(FlaskForm):
         ' It is assumed to contain a Dockerfile that will be built,'
         ' although this can be customised.',
         validators=[v.Length(min=1, max=Host.git_repo.type.length)])
+
     port = IntegerField(
         'Port',
         description='Which port the web application should be exposed on.'
