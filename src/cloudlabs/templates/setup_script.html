@@ -2,12 +2,10 @@
 {% from "includes/_form_helpers.html" import render_field %}
 
 {% block content %}
-  <form method="POST" action="{{ url_for('host.customize_setup') }}">
+  <form method="POST" action="{{ url_for('host.customise_setup') }}">
     {{ form.csrf_token }}
     {{ form.hidden_tag() }}
-    {% for it in form if it.widget.input_type != 'hidden' %}
-    	{{ render_field(it) }}
-    {% endfor %}
-    <input type="submit" value="Save" />
+    {{ render_field(form.setup_script) }}
+    <input type="submit" value="Add with customised setup script" />
   </form>
 {% endblock content %}

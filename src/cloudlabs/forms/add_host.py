@@ -48,18 +48,13 @@ class AddHostForm(FlaskForm):
                     'logging in.'
         ' Set up further keys by visiting your profile page.',
         coerce=int)
-    
+
     admin_password = StringField(
         'Admin password',
         description='Password to use for the admin user on this host',
         validators=[v.Optional(), v.Length(min=12,
                                            max=Host.admin_password.type.length
                                            )])
-
-    setup_script = TextAreaField(
-        'Setup script',
-        description=u'Shell script to run on remote virtual machine',
-        validators=[v.Optional()])
 
     git_repo = StringField(
         'Git repository',
@@ -76,24 +71,24 @@ class AddHostForm(FlaskForm):
         default=80,
         validators=[v.NumberRange(min=1, max=65535)])
 
-    #def validate_label(form, field):
-    #    """Check a user doesn't duplicate labels."""
-    #    label = field.data.strip()
-    #    if Host.query.filter_by(user_id=g.user.id, label=label).count() > 0:
-    #        raise v.ValidationError('You must choose a unique label for each '
-    #                                'host')
+    def validate_label(form, field):
+        """Check a user doesn't duplicate labels."""
+        label = field.data.strip()
+        if Host.query.filter_by(user_id=g.user.id, label=label).count() > 0:
+            raise v.ValidationError('You must choose a unique label for each '
+                                    'host')
 
-    #def validate_dns_name(form, field):
-    #    """DNS names must be globally unique."""
-    #    dns_name = field.data.strip()
-    #    if Host.query.filter_by(dns_name=dns_name).count() > 0:
-    #        raise v.ValidationError('The URL {} has already '
-    #                                'been taken'.format(dns_name))
+    def validate_dns_name(form, field):
+        """DNS names must be globally unique."""
+        dns_name = field.data.strip()
+        if Host.query.filter_by(dns_name=dns_name).count() > 0:
+            raise v.ValidationError('The URL {} has already '
+                                    'been taken'.format(dns_name))
 
-    #def validate_admin_ssh_key(form, field):
-    #    """The user must pick one of their keys."""
-    #    key_id = field.data
-    #    if key_id and SshKey.query.filter_by(user_id=g.user.id,
-    #                                         id=key_id).count() == 0:
-    #        raise v.ValidationError(
-    #                    'You must select one of your pre-configured SSH keys')
+    def validate_admin_ssh_key(form, field):
+        """The user must pick one of their keys."""
+        key_id = field.data
+        if key_id and SshKey.query.filter_by(user_id=g.user.id,
+                                             id=key_id).count() == 0:
+            raise v.ValidationError(
+                        'You must select one of your pre-configured SSH keys')

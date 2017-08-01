@@ -112,7 +112,6 @@ class Host(Model):
              "AZURE_URL={dns_name}.ukwest.cloudapp.azure.com -p {port}:{port}"
              " web-app")]).format(**kwargs)
 
-
     @property
     def link(self):
         """The full URL to this host when deployed, for use in href

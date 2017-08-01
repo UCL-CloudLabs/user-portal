@@ -1,7 +1,7 @@
 # Virtualenv location given in README.md
 /venv
 
-#environment setup
+# Environment setup
 env.sh
 
 # Python stuff
