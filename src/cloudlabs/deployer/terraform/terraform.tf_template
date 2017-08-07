@@ -142,7 +142,9 @@ resource "azurerm_virtual_machine" "vm" {
     provisioner "remote-exec" {
         inline = [
           {% for line in host.setup_script.split('\n') %}
-          "{{ line|trim|replace('"', '\\"') }}",
+            {% if line.strip() %}
+              "{{ line|trim|replace('"', '\\"') }}",
+            {% endif %}
           {%- endfor %}
         ]
     }
