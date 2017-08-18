@@ -68,6 +68,7 @@ class Deployer:
 
         # TODO: Do something with the things apply returns.
         #       Any exceptions raised by python_terraform?
+        self.tf.init(capture_output=False)
         return_code, stdout, stderr = self.tf.apply(capture_output=False)
 
         if return_code == 0:  # All went well
