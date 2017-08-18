@@ -23,11 +23,9 @@ def role_required(role):
     def wrap(view):
         @wraps(view)
         def decorated_view(*args, **kwargs):
-            print('Req role {} for {}'.format(role, request.url))
             if 'user' not in session:
                 return redirect(url_for('login', target=request.url))
             setup_user()
-            print('User', g.user, g.user.roles, role in g.user.roles)
             if g.user is None or role not in g.user.roles:
                 abort(403)
             return view(*args, **kwargs)
