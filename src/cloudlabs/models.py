@@ -1,9 +1,11 @@
 import json
 
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref
 
 from .extensions import db
 from .database import Model
+from .roles import Roles
 
 
 class User(Model):
@@ -21,12 +23,13 @@ class User(Model):
                                order_by='SshKey.label')
     hosts = db.relationship('Host', backref='user', lazy='dynamic',
                             order_by='Host.label')
-    roles = db.relationship('Role', secondary='user_role_association',
-                            backref=backref('users', lazy='select'),
-                            lazy='joined',
-                            cascade="all, delete-orphan",
-                            passive_deletes=True,
-                            order_by='Role.name')
+    _roles = db.relationship('UserRoles',
+                             backref=backref('users', lazy='select', cascade='save-update, merge'),
+                             lazy='joined',
+                             collection_class=set,
+                             cascade="all, delete-orphan",
+                             passive_deletes=True)
+    roles = association_proxy('_roles', 'name')
 
     def __repr__(self):
         return '<User: upi={}, name={}>'.format(self.upi, self.name)
@@ -55,21 +58,19 @@ class User(Model):
         return user
 
 
-class Role(Model):
-    """Stores user role types."""
+class UserRoles(Model):
+    """Stores user roles."""
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(20), nullable=False)
-    description = db.Column(db.Text, nullable=False)
+    name = db.Column(db.Enum(Roles), nullable=False, index=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    def __init__(self, role):
+        """Simple constructor for use by association_proxy."""
+        self.name = role
 
     def __repr__(self):
         return '<Role: {}>'.format(self.name)
-
-
-class UserRoleAssociation(Model):
-    """Association table between User & Role."""
-    __tablename__ = 'user_role_association'
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
 
 
 class SshKey(Model):

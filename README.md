@@ -57,6 +57,13 @@ cd src
 flask db upgrade
 ```
 
+Note that once you have created a test user account / signed in with SSO for the first time, you will need to give you user the admin role explicitly using the Postgres command-line:
+```bash
+psql -d cloudlabs
+> insert into user_roles (name, user_id) values ('admin', 1);
+```
+Replacing `1` with your user's id if necessary.
+
 ### Run the webapp
 
 ```bash
