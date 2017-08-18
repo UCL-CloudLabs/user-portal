@@ -112,8 +112,8 @@ class Host(Model):
 
     def __init__(self, *args, **kwargs):
         """Define a default setup_script as well as the supplied fields."""
-        if ('setup_script' not in kwargs and 'git_repo' in kwargs
-            and 'port' in kwargs):
+        if ('setup_script' not in kwargs and 'git_repo' in kwargs and
+                'port' in kwargs):
             kwargs['setup_script'] = self.default_setup_script(**kwargs)
         super(Host, self).__init__(*args, **kwargs)
 

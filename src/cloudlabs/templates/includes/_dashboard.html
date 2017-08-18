@@ -12,10 +12,6 @@
       <th>Status</th>
       <th>Actions</th>
   </tr>
-  {# 
-    TODO: If we're calling a REST service to get this, this will become JS code,
-    in which case we'll need to figure out how to do url_for in JS...
-  #}
   {% for host in user.hosts %}
     <tr>
       <td>{{ host.label }}</td>
