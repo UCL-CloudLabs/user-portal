@@ -7,6 +7,7 @@ from cloudlabs import (
     views,
     views_host
 )
+from cloudlabs.admin import views as admin
 from cloudlabs.extensions import db, migrate
 
 
@@ -19,5 +20,6 @@ def create_app(config_name):
     context_processors.setup(app)
     app.register_blueprint(views.blueprint)
     app.register_blueprint(views_host.blueprint)
+    app.register_blueprint(admin.blueprint, url_prefix='/admin')
     sso.setup_login(app)
     return app

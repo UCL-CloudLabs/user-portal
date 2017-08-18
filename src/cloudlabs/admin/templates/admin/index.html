@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% from "includes/_form_helpers.html" import render_field %}
+
+
+{% block breadcrumb_links %}
+  {{ super() }}
+  <li class="breadcrumb__item">Admin</li>
+{% endblock breadcrumb_links %}
+
+
+{% block content %}
+  <h1>Administrative interface</h1>
+
+  <h2>Users</h2>
+
+  <table>
+    <tr>
+      <th>UCL ID</th>
+      <th>UPI</th>
+      <th>Name</th>
+      <th>Admin?</th>
+      <th>Can create hosts?</th>
+    </tr>
+    {% for u in all_users %}
+      <tr>
+        <td>{{ u.ucl_id }}</td>
+        <td>{{ u.upi }}</td>
+        <td>{{ u.name }}</td>
+        <td>
+          {%- if Roles.admin in u.roles -%}
+            Yes
+            {%- if u is not sameas(user) %}
+              (<a href="{{ url_for('admin.user', user=u.id, change='-admin') }}">demote</a>)
+            {% endif -%}
+          {%- else -%}
+            No (<a href="{{ url_for('admin.user', user=u.id, change='+admin') }}">promote</a>)
+          {%- endif -%}
+        </td>
+        <td>
+          {%- if Roles.owner in u.roles -%}
+            Yes (<a href="{{ url_for('admin.user', user=u.id, change='-owner') }}">unauthorise</a>)
+          {%- else -%}
+            No (<a href="{{ url_for('admin.user', user=u.id, change='+owner') }}">authorise</a>)
+          {%- endif -%}
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+{% endblock content %}
