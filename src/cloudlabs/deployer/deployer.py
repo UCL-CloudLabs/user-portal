@@ -48,7 +48,7 @@ class Deployer:
         print(rendered_template)
 
         # try:
-        with open(Path(self.tfstate_path, "terraform.tf"), "w") as f:
+        with open(str(Path(self.tfstate_path, "terraform.tf")), "w") as f:
                 f.write(rendered_template)
         # except:
         #     # TODO: replace with logging and maybe raise?
