@@ -14,7 +14,8 @@ from .deployer.deployer import Deployer
 from .forms.add_host import AddHostForm
 from .forms.customise_setup import CustomiseSetupForm
 from .models import Host
-from .utils import login_required
+from .roles import Roles
+from .utils import login_required, role_required
 
 
 blueprint = Blueprint('host', __name__)
@@ -28,7 +29,7 @@ def info(id):
 
 
 @blueprint.route('/host/add', methods=('GET', 'POST'))
-@login_required
+@role_required(Roles.owner)
 def add():
     form = AddHostForm()
     # Fill in options for SSH key
@@ -62,7 +63,7 @@ def add():
 
 
 @blueprint.route('/host/add/customise', methods=('GET', 'POST'))
-@login_required
+@role_required(Roles.owner)
 def customise_setup():
     form = CustomiseSetupForm()
     if form.validate_on_submit():
@@ -76,7 +77,7 @@ def customise_setup():
 
 
 @blueprint.route('/host/<int:id>/edit')
-@login_required
+@role_required(Roles.owner)
 def edit(id):
     host = Host.query.get_or_404(id)
     return render_template('not_implemented.html', host=host,
@@ -84,7 +85,7 @@ def edit(id):
 
 
 @blueprint.route('/host/<int:id>/delete')
-@login_required
+@role_required(Roles.owner)
 def delete(id):
     host = Host.query.get_or_404(id)
     if host.user is not g.user:
@@ -96,7 +97,7 @@ def delete(id):
 
 
 @blueprint.route('/host/<int:id>/control')
-@login_required
+@role_required(Roles.owner)
 def control(id):
     """Also takes `action` as a query parameter."""
     action = request.args.get('action', '')
@@ -109,7 +110,7 @@ def control(id):
 
 
 @blueprint.route('/host/<int:id>/download')
-@login_required
+@role_required(Roles.owner)
 def download(id):
     host = Host.query.get_or_404(id)
     return render_template('not_implemented.html', host=host,

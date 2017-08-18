@@ -8,3 +8,9 @@ def setup(app):
     def inject_now():
         """Enable {{now}} in templates, used by the footer."""
         return {'now': datetime.utcnow()}
+
+    @app.context_processor
+    def inject_roles():
+        """Provide the Roles enum to all templates."""
+        from .roles import Roles
+        return {'Roles': Roles}

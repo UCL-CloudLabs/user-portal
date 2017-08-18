@@ -1,7 +1,8 @@
 from functools import wraps
-from flask import g, redirect, request, session, url_for
+from flask import abort, g, redirect, request, session, url_for
 
 from .models import User
+from .roles import Roles
 
 
 def login_required(view):
@@ -13,6 +14,25 @@ def login_required(view):
         setup_user()
         return view(*args, **kwargs)
     return decorated_view
+
+
+def role_required(role):
+    """Decorator ensuring only users with the given role can access a view."""
+    assert role in Roles
+
+    def wrap(view):
+        @wraps(view)
+        def decorated_view(*args, **kwargs):
+            print('Req role {} for {}'.format(role, request.url))
+            if 'user' not in session:
+                return redirect(url_for('login', target=request.url))
+            setup_user()
+            print('User', g.user, g.user.roles, role in g.user.roles)
+            if g.user is None or role not in g.user.roles:
+                abort(403)
+            return view(*args, **kwargs)
+        return decorated_view
+    return wrap
 
 
 def setup_user(user_info=None):
