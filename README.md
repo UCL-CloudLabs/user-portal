@@ -20,12 +20,23 @@ or, for local dev setup:
 pip install -r requirements/local.txt
 ```
 
+Download the appropriate Terraform binary for your system following [Terraform's instructions](https://www.terraform.io/intro/getting-started/install.html) and put it in your virtualenv's `bin` folder so it can be run by the Flask app.
+
 ### Configure environment
 
 ```bash
 export FLASK_APP=autoapp.py
 export FLASK_DEBUG=True
 export APP_SETTINGS=cloudlabs.config.DevConfig
+export PRIVATE_SSH_KEY_PATH=<path/to/an/ssh/private/key>
+```
+
+You will also need the following environment variables set in order to deploy machines. Ask a team member for their secret values:
+```bash
+export TF_VAR_azure_tenant_id=
+export TF_VAR_azure_client_id=
+export TF_VAR_azure_client_secret=
+export TF_VAR_azure_subscription_id=
 ```
 
 ### Create a database and run migrations
