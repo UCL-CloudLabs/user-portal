@@ -49,14 +49,14 @@ class TestDeployer:
     @pytest.fixture
     def app(self):
         return create_app(
-                        os.getenv('APP_SETTINGS', 'cloudlabs.config.Config'))
+            os.getenv('APP_SETTINGS', 'cloudlabs.config.Config'))
 
     @pytest.fixture
     def public_key(self):
         '''
         Read public key contents from encrypted file, ignore newline
         '''
-        with open(Path('test/id_rsa_travis_azure.pub').absolute()) as f:
+        with open(str(Path('test/id_rsa_travis_azure.pub').absolute())) as f:
             public_key = f.read().rstrip('\n')
         return public_key
 
@@ -95,7 +95,7 @@ class TestDeployer:
         Check the path where the terraform files are is setup correctly.
         '''
         assert deployer.template_path == Path(
-                                    'cloudlabs/deployer/terraform').absolute()
+            'cloudlabs/deployer/terraform').absolute()
 
     def test_deployer(self, app, resource_name, deployer, dnsname, host):
         '''
