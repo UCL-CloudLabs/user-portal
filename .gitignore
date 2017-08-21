@@ -3,6 +3,7 @@
 
 # Environment setup
 env.sh
+secrets.py
 
 # Python stuff
 __pycache__
