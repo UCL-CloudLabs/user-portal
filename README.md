@@ -111,12 +111,23 @@ pip install -r requirements/base.txt
 
 (TODO: investigate using ``python3 -m venv `pwd`/venv`` instead)
 
+Copy `src/secrets.example.py` to `src/secrets.py` and fill in values.
+
 Quick & dirty test:
 
 ```bash
 cd src
 sudo apache2ctl stop
 sudo FLASK_APP=autoapp.py /home/cloudlabs/user-portal/venv/bin/flask run --host=0.0.0.0 --port=80
+```
+
+Install Terraform:
+```bash
+cd
+curl -sSL -o terraform.zip "https://releases.hashicorp.com/terraform/0.10.2/terraform_0.10.2_linux_amd64.zip"
+sudo apt-get install unzip
+unzip terraform.zip
+cp terraform venv/bin/
 ```
 
 Set up Apache:
