@@ -68,8 +68,12 @@ class Deployer:
 
         # TODO: Do something with the things apply returns.
         #       Any exceptions raised by python_terraform?
-        self.tf.init(capture_output=False)
-        return_code, stdout, stderr = self.tf.apply(capture_output=False)
+        return_code, stdout, stderr = self.tf.init(capture_output=True)
+        print(stdout)
+        print(stderr)
+        return_code, stdout, stderr = self.tf.apply(capture_output=True)
+        print(stdout)
+        print(stderr)
 
         if return_code == 0:  # All went well
             return ("Deployed! You can now SSH to it as "
