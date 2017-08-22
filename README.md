@@ -39,6 +39,10 @@ export TF_VAR_azure_client_secret=
 export TF_VAR_azure_subscription_id=
 ```
 
+### Install the background task queue
+
+We use Celery for this with the RabbitMQ broker. The former has already been installed with `pip`; the latter needs to be set up following the instructions at <http://docs.celeryproject.org/en/latest/getting-started/brokers/rabbitmq.html>.
+
 ### Create a database and run migrations
 
 To set up the database and initial migration for the very first time in this repo:
