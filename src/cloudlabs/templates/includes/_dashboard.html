@@ -24,7 +24,7 @@
       <td><a href="{{ host.link }}">{{ host.basic_url }}</a></td>
       <td>
         {%- if host.status in [HostStatus.deploying, HostStatus.error] -%}
-          <a href="{{ url_for('host.view_log') }}">
+          <a href="{{ url_for('host.view_log', id=host.id) }}">
         {%- endif -%}
         {{ host.status.value }}
         {%- if host.status in [HostStatus.deploying, HostStatus.error] -%}

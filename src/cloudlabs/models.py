@@ -111,7 +111,7 @@ class Host(Model):
     # Information about the running host
     status = db.Column(db.Enum(HostStatus), nullable=False,
                        server_default=HostStatus.defining.name)
-    deploy_log = db.Column(db.Text)
+    deploy_log = db.Column(db.Text, server_default='')
 
     def __repr__(self):
         return '<Host: dns={}, user={}, label={}>'.format(
