@@ -117,6 +117,13 @@ def download(id):
                            thing='Downloading host images')
 
 
+@blueprint.route('/host/<int:id>/view_log')
+@role_required(Roles.owner)
+def view_log(id):
+    host = Host.query.get_or_404(id)
+    return render_template('deploy_log.html', host=host)
+
+
 def deploy(host):
     """Calls deployer to launch a VM.
 

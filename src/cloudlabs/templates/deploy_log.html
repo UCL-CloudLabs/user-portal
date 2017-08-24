@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+
+{% block meta %}
+  {{ super() }}
+  <meta http-equiv="refresh" content="5">
+{% endblock meta %}
+
+
+{% block breadcrumb_links %}
+  {{ super() }}
+  <li class="breadcrumb__item">{{ host.label }}</li>
+{% endblock breadcrumb_links %}
+
+
+{% block content %}
+  <h1>Deployment log for <a href="{{ url_for('host.info', id=host.id) }}">{{ host.label }}</a></h1>
+
+  <pre>
+  {{ host.deploy_log }}
+  </pre>
+{% endblock content %}
+
+
+{% block scripts %}
+  {{ super() }}
+  {# TODO: Refresh log using AJAX #}
+{% endblock scripts %}
