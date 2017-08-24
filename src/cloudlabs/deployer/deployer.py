@@ -1,9 +1,12 @@
 import json
+import subprocess
 from flask import current_app
-from jinja2 import Template, TemplateNotFound, Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 from python_terraform import Terraform
 from tempfile import TemporaryDirectory
+
+from ..host_status import HostStatus
 
 
 class Deployer:
@@ -66,30 +69,43 @@ class Deployer:
         #     # TODO: logging
         #     return "Error when rendering Terraform template."
 
-        # TODO: Do something with the things apply returns.
-        #       Any exceptions raised by python_terraform?
-        return_code, stdout, stderr = self.tf.init(capture_output=True)
-        print(stdout)
-        print(stderr)
-        return_code, stdout, stderr = self.tf.apply(capture_output=True)
-        print(stdout)
-        print(stderr)
-
-        if return_code == 0:  # All went well
-            return ("Deployed! You can now SSH to it as "
-                    "{}@{}.ukwest.cloudapp.azure.com. "
-                    "Your website is deployed at."
-                    "http://{}.ukwest.cloudapp.azure.com:{}".format(
-                                                        host.admin_username,
-                                                        host.dns_name,
-                                                        host.dns_name,
-                                                        host.port))
+        host.update(status=HostStatus.deploying,
+                    deploy_log='Initialising deployment...\n\n')
+        process = self._run_cmd('init', host)
+        if process.returncode != 0:
+            host.update(status=HostStatus.error,
+                        deploy_log=host.deploy_log +
+                        '\n\nTerraform init failed with return code {}\n'.format(
+                            process.returncode))
+            return
+        host.update(deploy_log=host.deploy_log + '\n\nRunning deployment...\n\n')
+        process = self._run_cmd('apply', host)
+        if process.returncode == 0:
+            host.update(status=HostStatus.running)
         else:
-            # TODO raise
-            return ("Something went wrong with the deployment: {}".format(
-                                                                        stderr
-                                                                        )
-                    )
+            host.update(status=HostStatus.error,
+                        deploy_log=host.deploy_log +
+                        '\n\nTerraform apply failed with return code {}\n'.format(
+                            process.returncode))
+
+    def _run_cmd(self, name, host):
+        '''Run a terraform command for the given host.
+
+        Will append the command's output & stderr to the host's deploy_log.
+
+        :param name: the name of the Terraform command to run
+        :param host: the host object being deployed
+        :returns: the subprocess object
+        '''
+        process = subprocess.Popen(['terraform', name, '-no-color'],
+                                   cwd=self.tfstate_path,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT)
+        for line in process.stdout:
+            print(line.decode('utf-8'), end='')
+            host.update(deploy_log=host.deploy_log + line.decode('utf-8'))
+        process.wait()
+        return process
 
     def destroy(self, resource=None):
         '''
