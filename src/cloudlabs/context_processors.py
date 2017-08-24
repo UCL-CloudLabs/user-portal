@@ -14,3 +14,9 @@ def setup(app):
         """Provide the Roles enum to all templates."""
         from .roles import Roles
         return {'Roles': Roles}
+
+    @app.context_processor
+    def inject_status():
+        """Provide the HostStatus enum to all templates."""
+        from .host_status import HostStatus
+        return {'HostStatus': HostStatus}

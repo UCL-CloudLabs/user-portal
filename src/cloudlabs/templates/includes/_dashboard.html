@@ -22,18 +22,25 @@
     <tr>
       <td>{{ host.label }}</td>
       <td><a href="{{ host.link }}">{{ host.basic_url }}</a></td>
-      <td>{{ host.status }}</td>
       <td>
-        {% if host.status in ['Running', 'Restarting'] %}
+        {%- if host.status in [HostStatus.deploying, HostStatus.error] -%}
+          <a href="{{ url_for('host.view_log') }}">
+        {%- endif -%}
+        {{ host.status.value }}
+        {%- if host.status in [HostStatus.deploying, HostStatus.error] -%}
+          </a>
+        {%- endif -%}
+      </td>
+      <td>
+        {% if host.status in [HostStatus.running, HostStatus.starting] %}
           <a href="{{ url_for('host.control', id=host.id, action='stop') }}"><img src="{{ url_for('static', filename='img/stop.svg') }}" alt="Stop virtual machine" class="action" /></a>
         {% endif %}
-        {% if host.status == 'Running' %}
+        {% if host.status == HostStatus.running %}
           <a href="{{ url_for('host.control', id=host.id, action='restart') }}"><img src="{{ url_for('static', filename='img/restart.svg') }}" alt="Restart virtual machine" class="action" /></a>
         {% endif %}
-        {% if host.status == 'Stopped' %}
+        {% if host.status == HostStatus.stopped %}
           <a href="{{ url_for('host.control', id=host.id, action='start') }}"><img src="{{ url_for('static', filename='img/start.svg') }}" alt="Start virtual machine" class="action" /></a>
         {% endif %}
-        {# TODO: Add a 'Deploying' status with action to view log #}
         <a href="{{ url_for('host.edit', id=host.id) }}"><img src="{{ url_for('static', filename='img/configure.svg') }}" alt="Configure virtual machine') }}" class="action" /></a>
         <a href="{{ url_for('host.download', id=host.id) }}"><img src="{{ url_for('static', filename='img/download.svg') }}" alt="Download virtual machine image" class="action" /></a>
         <img src="{{ url_for('static', filename='img/delete.svg') }}" alt="Delete virtual machine" class="action" onclick="confirm_delete('{{ url_for('host.delete', id=host.id) }}')" />

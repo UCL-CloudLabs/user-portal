@@ -3,8 +3,9 @@ import json
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref
 
-from .extensions import db
 from .database import Model
+from .extensions import db
+from .host_status import HostStatus
 from .roles import Roles
 
 
@@ -107,6 +108,10 @@ class Host(Model):
     port = db.Column(db.Integer)
     setup_script = db.Column(db.Text)
 
+    # Information about the running host
+    status = db.Column(db.Enum(HostStatus), nullable=False,
+                       default=HostStatus.defining)
+
     def __repr__(self):
         return '<Host: dns={}, user={}, label={}>'.format(
             self.dns_name, self.user, self.label)
@@ -148,11 +153,6 @@ class Host(Model):
     def basic_url(self):
         """This host's URL without scheme, suitable for user display."""
         return self.dns_name + '.cloudlabs.rc.ucl.ac.uk'
-
-    @property
-    def status(self):
-        """Whether this host is Running, Restarting, or Stopped."""
-        return 'Stopped'
 
     @property
     def auth_type(self):
