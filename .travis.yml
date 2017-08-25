@@ -46,8 +46,8 @@ env:
 
 before_install:
   - |
-    # Unfortunatelly this is the only way at the moment to install Terraform in Ubuntu
-    curl -sSL -o terraform.zip "https://releases.hashicorp.com/terraform/0.9.11/terraform_0.9.11_linux_amd64.zip" ;
+    # Unfortunately this is the only way at the moment to install Terraform in Ubuntu
+    curl -sSL -o terraform.zip "https://releases.hashicorp.com/terraform/0.10.2/terraform_0.10.2_linux_amd64.zip" ;
     mkdir terraform;
     unzip terraform.zip -d terraform/ ;
     chmod +x ./terraform/terraform ;

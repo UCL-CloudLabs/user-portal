@@ -5,6 +5,12 @@
   as well as stop/start them, make alterations to their configuration, download local copies, and create new machines.
 </p>
 
+{% if Roles.owner not in user.roles %}
+<p>
+  Note that in the alpha version of this service, only a small group of test users are able to create hosts. Contact the <a href="mailto:rc-softdev@ucl.ac.uk">Research Software Development Group</a> if you wish to join this group.
+</p>
+{% endif %}
+
 <table class="hosts">
   <tr>
       <th>Name</th>
@@ -12,10 +18,6 @@
       <th>Status</th>
       <th>Actions</th>
   </tr>
-  {# 
-    TODO: If we're calling a REST service to get this, this will become JS code,
-    in which case we'll need to figure out how to do url_for in JS...
-  #}
   {% for host in user.hosts %}
     <tr>
       <td>{{ host.label }}</td>
@@ -41,7 +43,9 @@
   {% endfor %}
 </table>
 
-<a class="btn" href="{{ url_for('host.add') }}">Add new host</a>
+{% if Roles.owner in user.roles %}
+  <a class="btn" href="{{ url_for('host.add') }}">Add new host</a>
+{% endif %}
 
 {% if user.hosts.count() > 0 %}
   <p class="text-right small cite">

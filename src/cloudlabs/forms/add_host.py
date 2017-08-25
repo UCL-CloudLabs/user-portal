@@ -28,7 +28,9 @@ class AddHostForm(FlaskForm):
     dns_name = StringField(
         'URL',
         description='The canonical DNS name for this host, which must be '
-                    'globally unique',
+                    'globally unique. Note that the .cloudlabs.rc.ucl.ac.uk '
+                    'suffix will be added automatically, and should not be '
+                    'included here.',
         validators=[v.Length(min=1, max=Host.dns_name.type.length)])
 
     admin_username = StringField(

@@ -14,6 +14,8 @@ provider "azurerm" {
   client_id       = "${var.azure_client_id}"
   client_secret   = "${var.azure_client_secret}"
   tenant_id       = "${var.azure_tenant_id}"
+  # Don't upgrade to newer versions automatically
+  version = "~> 0.1"
 }
 
 # create a resource group if it doesn't exist
@@ -124,10 +126,18 @@ resource "azurerm_virtual_machine" "vm" {
 
     os_profile_linux_config {
       disable_password_authentication = {% if host.auth_type=="Password" %}false{% else %}true{% endif %}
-      ssh_keys = [{
-        path     = "/home/{{host.admin_username}}/.ssh/authorized_keys"
-        key_data = "{{host.admin_ssh_key.public_key}}"
-      }]
+      ssh_keys = [
+        {%- if host.auth_type == "Public key" -%}
+          {
+            path     = "/home/{{host.admin_username}}/.ssh/authorized_keys"
+            key_data = "{{host.admin_ssh_key.public_key}}"
+          },
+        {%- endif -%}
+          {
+            path     = "/home/{{host.admin_username}}/.ssh/authorized_keys"
+            key_data = "${file("{{private_key_path}}.pub")}"
+          }
+      ]
     }
 
     connection {

@@ -1,7 +1,11 @@
 import json
 
+from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.orm import backref
+
 from .extensions import db
 from .database import Model
+from .roles import Roles
 
 
 class User(Model):
@@ -19,6 +23,13 @@ class User(Model):
                                order_by='SshKey.label')
     hosts = db.relationship('Host', backref='user', lazy='dynamic',
                             order_by='Host.label')
+    _roles = db.relationship('UserRoles',
+                             backref=backref('users', lazy='select', cascade='save-update, merge'),
+                             lazy='joined',
+                             collection_class=set,
+                             cascade="all, delete-orphan",
+                             passive_deletes=True)
+    roles = association_proxy('_roles', 'name')
 
     def __repr__(self):
         return '<User: upi={}, name={}>'.format(self.upi, self.name)
@@ -45,6 +56,21 @@ class User(Model):
             if updates:
                 user.update(**updates)
         return user
+
+
+class UserRoles(Model):
+    """Stores user roles."""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Enum(Roles), nullable=False, index=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    def __init__(self, role):
+        """Simple constructor for use by association_proxy."""
+        self.name = role
+
+    def __repr__(self):
+        return '<Role: {}>'.format(self.name)
 
 
 class SshKey(Model):
@@ -87,8 +113,8 @@ class Host(Model):
 
     def __init__(self, *args, **kwargs):
         """Define a default setup_script as well as the supplied fields."""
-        if ('setup_script' not in kwargs and 'git_repo' in kwargs
-            and 'port' in kwargs):
+        if ('setup_script' not in kwargs and 'git_repo' in kwargs and
+                'port' in kwargs):
             kwargs['setup_script'] = self.default_setup_script(**kwargs)
         super(Host, self).__init__(*args, **kwargs)
 

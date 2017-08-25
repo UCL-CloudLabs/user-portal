@@ -1,6 +1,7 @@
 from flask import redirect, render_template, request, session, url_for
 from flask_sso import SSO
 
+from .roles import Roles
 from .utils import setup_user
 
 
@@ -46,12 +47,13 @@ def setup_fake_login(app):
     """Setup a fake login handler that always logs in a test user."""
     @app.route('/login')
     def login():
-        setup_user({
+        user = setup_user({
             'eppn': 'userid@ucl.ac.uk',
             'name': 'Test User',
             'upi': 'ABCDE12',
             'email': 'first.last@ucl.ac.uk',
         })
+        user.roles.add(Roles.admin)
         target = request.args.get('target', url_for('main.index'))
         return redirect(target)
 
