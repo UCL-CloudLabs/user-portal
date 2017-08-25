@@ -10,11 +10,12 @@ from flask import (
     request,
     url_for,
 )
-from .deployer.deployer import Deployer
 from .forms.add_host import AddHostForm
 from .forms.customise_setup import CustomiseSetupForm
+from .host_status import HostStatus
 from .models import Host
 from .roles import Roles
+from .tasks import create_celery
 from .utils import login_required, role_required
 
 
@@ -56,7 +57,6 @@ def add():
         else:
             new_host = Host.create(**fields)
             deploy(new_host)
-            flash('Host "{}" added'.format(form.label.data), 'success')
             return redirect(url_for('main.index'))
 
     return render_template('add_host.html', form=form)
@@ -125,12 +125,13 @@ def view_log(id):
 
 
 def deploy(host):
-    """Calls deployer to launch a VM.
-
-    If successful, adds the Terraform state file to the DB.
-    """
-    deployer = Deployer(current_app.root_path)
-    deployer.deploy(host)
+    """Signals Celery to launch a VM in the background."""
+    host.update(status=HostStatus.deploying)
+    celery = create_celery(current_app)
+    celery.send_task(
+        'cloudlabs.deploy',
+        args=(host.id,))
+    flash('Host "{}" deployment scheduled'.format(host.label), 'success')
 
     # host.terraform_state = render_template('state.json', host=host)
     # host.save()

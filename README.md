@@ -79,6 +79,22 @@ psql -d cloudlabs
 ```
 Replacing `1` with your user's id if necessary.
 
+### Launch worker(s) to process the task queue
+
+For a simple development setup, in a separate terminal run:
+```bash
+cd src
+PATH=/usr/local/sbin:$PATH
+export RABBITMQ_NODE_IP_ADDRESS=127.0.0.1
+rabbitmq-server -detached
+celery worker -A cloudlabs.tasks.worker.celery --loglevel=info
+```
+
+You can stop the worker using Control-C, and then the broker with
+```bash
+rabbitmqctl stop
+```
+
 ### Run the webapp
 
 ```bash
