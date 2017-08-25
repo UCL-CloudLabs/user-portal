@@ -3,7 +3,9 @@
 
 {% block meta %}
   {{ super() }}
-  <meta http-equiv="refresh" content="5">
+  {% if host.status == HostStatus.deploying %}
+    <meta http-equiv="refresh" content="5">
+  {% endif %}
 {% endblock meta %}
 
 
@@ -17,7 +19,7 @@
   <h1>Deployment log for <a href="{{ url_for('host.info', id=host.id) }}">{{ host.label }}</a></h1>
 
   <pre>
-  {{ host.deploy_log }}
+{{ host.deploy_log }}
   </pre>
 {% endblock content %}
 
