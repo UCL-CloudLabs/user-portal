@@ -147,7 +147,17 @@ cd
 curl -sSL -o terraform.zip "https://releases.hashicorp.com/terraform/0.10.2/terraform_0.10.2_linux_amd64.zip"
 sudo apt-get install unzip
 unzip terraform.zip
-cp terraform venv/bin/
+sudo cp terraform /usr/local/bin/terraform
+```
+
+Set up Celery & RabbitMQ:
+```bash
+sudo apt-get install rabbitmq-server
+sudo cp CloudLabs/conf_files/rabbitmq-server /etc/default/rabbitmq-server
+sudo cp CloudLabs/conf_files/celery-init /etc/init.d/celeryd
+sudo cp CloudLabs/conf_files/celery-defaults /etc/default/celeryd
+sudo update-rc.d celeryd defaults 25
+sudo /etc/init.d/celeryd restart
 ```
 
 Set up Apache:
@@ -196,6 +206,14 @@ source ../venv/bin/activate
 sudo -u cloudlabs-wsgi -E -- `which flask` db upgrade
 ```
 
+### Upgrading the staging server
+
+Some of the above steps also need to be run when upgrading the CloudLabs software.
+Notably:
+1. Pull latest changes from GitHub
+2. Install latest package requirements
+3. Apply DB migrations
+
 
 ## Useful reference websites
 
@@ -210,3 +228,5 @@ sudo -u cloudlabs-wsgi -E -- `which flask` db upgrade
     * http://flask-sqlalchemy.pocoo.org/2.1/quickstart/
     * https://flask-migrate.readthedocs.io/en/latest/
     * http://docs.sqlalchemy.org/en/latest/orm/tutorial.html
+* Celery:
+    * http://docs.celeryproject.org/en/latest/userguide/daemonizing.html
