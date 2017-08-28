@@ -56,13 +56,13 @@ class TestDeployer:
         '''
         Read public key contents from encrypted file, ignore newline
         '''
-        with open(str(Path('test/id_rsa_travis.pub').absolute())) as f:
+        with open(str(Path('test/id_rsa_travis_azure.pub').absolute())) as f:
             public_key = f.read().rstrip('\n')
         return public_key
 
     @pytest.fixture
     def private_key_path(self):
-        return Path('test/id_rsa_travis').absolute()
+        return Path('test/id_rsa_travis_azure').absolute()
 
     @pytest.fixture
     def host(self, app, deployer, dnsname, public_key, private_key_path,
