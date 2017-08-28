@@ -201,6 +201,7 @@ Notably:
 1. Pull latest changes from GitHub
 2. Install latest package requirements
 3. Apply DB migrations
+4. Restart Celery & Apache
 
 
 ## Useful reference websites
