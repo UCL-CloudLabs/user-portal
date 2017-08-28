@@ -18,3 +18,4 @@ __pycache__
 # App secrets
 src/test/secrets.tar
 src/test/id*
+.travis.tar
