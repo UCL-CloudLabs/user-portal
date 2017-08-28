@@ -11,8 +11,15 @@ from cloudlabs.admin import views as admin
 from cloudlabs.extensions import db, migrate
 
 
-def create_app(config_name):
-    """Build our Flask application with the given config source."""
+def create_app(config_name=None):
+    """Build our Flask application with the given config source.
+
+    If no config_name is given, we default to cloudlabs.config.Config,
+    unless overridden by the environment variable APP_SETTINGS.
+    """
+    if config_name is None:
+        import os
+        config_name = os.getenv('APP_SETTINGS', 'cloudlabs.config.Config')
     app = Flask(__name__)
     app.config.from_object(config_name)
     db.init_app(app)

@@ -1,6 +1,4 @@
 
-import os
-
 from celery.exceptions import SoftTimeLimitExceeded
 from flask import current_app
 
@@ -9,11 +7,11 @@ from ..app import create_app
 from ..deployer.deployer import Deployer
 from ..host_status import HostStatus
 from ..models import Host
+from ..secrets import apply_secrets
 
 
-celery = create_celery(
-    create_app(
-        os.getenv('APP_SETTINGS', 'cloudlabs.config.Config')))
+apply_secrets()
+celery = create_celery(create_app())
 
 
 @celery.task(name='cloudlabs.deploy')

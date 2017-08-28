@@ -28,16 +28,12 @@ Download the appropriate Terraform binary for your system following [Terraform's
 export FLASK_APP=autoapp.py
 export FLASK_DEBUG=True
 export APP_SETTINGS=cloudlabs.config.DevConfig
-export PRIVATE_SSH_KEY_PATH=<path/to/an/ssh/private/key>
 ```
 
-You will also need the following environment variables set in order to deploy machines. Ask a team member for their secret values:
-```bash
-export TF_VAR_azure_tenant_id=
-export TF_VAR_azure_client_id=
-export TF_VAR_azure_client_secret=
-export TF_VAR_azure_subscription_id=
-```
+### Configure secrets
+
+Copy the file `src/cloudlabs/secrets.example.py` as `src/cloudlabs/secrets.py` and fill in suitable values.
+Ask a team member for the Azure credentials.
 
 ### Install the background task queue
 
@@ -131,15 +127,7 @@ pip install -r requirements/base.txt
 
 (TODO: investigate using ``python3 -m venv `pwd`/venv`` instead)
 
-Copy `src/secrets.example.py` to `src/secrets.py` and fill in values.
-
-Quick & dirty test:
-
-```bash
-cd src
-sudo apache2ctl stop
-sudo FLASK_APP=autoapp.py /home/cloudlabs/user-portal/venv/bin/flask run --host=0.0.0.0 --port=80
-```
+Copy `src/cloudlabs/secrets.example.py` to `src/cloudlabs/secrets.py` and fill in values.
 
 Install Terraform:
 ```bash
