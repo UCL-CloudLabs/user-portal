@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 from flask import current_app
 from jinja2 import Environment, FileSystemLoader
@@ -73,20 +74,39 @@ class Deployer:
                     deploy_log='Initialising deployment...\n\n')
         process = self._run_cmd('init', host)
         if process.returncode != 0:
-            host.update(status=HostStatus.error,
-                        deploy_log=host.deploy_log +
-                        '\n\nTerraform init failed with return code {}\n'.format(
-                            process.returncode))
+            self._record_result(host, HostStatus.error, 'init', process.returncode)
             return
         host.update(deploy_log=host.deploy_log + '\n\nRunning deployment...\n\n')
         process = self._run_cmd('apply', host)
         if process.returncode == 0:
-            host.update(status=HostStatus.running)
+            self._record_result(host, HostStatus.running)
         else:
-            host.update(status=HostStatus.error,
-                        deploy_log=host.deploy_log +
-                        '\n\nTerraform apply failed with return code {}\n'.format(
-                            process.returncode))
+            self._record_result(host, HostStatus.error, 'apply', process.returncode)
+
+    def _record_result(self, host, status, command=None, return_code=None):
+        """Record the result of a Terraform run in the DB.
+
+        :param host: the host being deployed
+        :param status: the result status of the deployment
+        :param command: the Terraform command name that was run
+            (only required if there was an error)
+        :param return_code: the return code of the Terraform command
+            (only required if there was an error)
+        """
+        updates = {
+            'status': status
+        }
+        state_path = os.path.join(self.tfstate_path, 'terraform.tfstate')
+        try:
+            with open(state_path, 'r') as tf_state:
+                updates['terraform_state'] = tf_state.read()
+        except IOError:
+            pass
+        if status is HostStatus.error:
+            updates['deploy_log'] = (
+                host.deploy_log + '\n\nTerraform {} failed with return code {}\n'.format(
+                    command, return_code))
+        host.update(**updates)
 
     def _run_cmd(self, name, host):
         '''Run a terraform command for the given host.
