@@ -103,7 +103,7 @@ flask run
 This is documenting all the steps I'm performing on the staging machine to get a test instance running.
 It will be automated later.
 
-Add security rules allowing HTTPS and HTTP access, under 'Network interface' -> 'Network security group' -> 'Inbound security rules'
+Add Azure security rules allowing HTTPS and HTTP access, under 'Network interface' -> 'Network security group' -> 'Inbound security rules'
 
 Install system packages:
 
@@ -136,16 +136,6 @@ curl -sSL -o terraform.zip "https://releases.hashicorp.com/terraform/0.10.2/terr
 sudo apt-get install unzip
 unzip terraform.zip
 sudo cp terraform /usr/local/bin/terraform
-```
-
-Set up Celery & RabbitMQ:
-```bash
-sudo apt-get install rabbitmq-server
-sudo cp CloudLabs/conf_files/rabbitmq-server /etc/default/rabbitmq-server
-sudo cp CloudLabs/conf_files/celery-init /etc/init.d/celeryd
-sudo cp CloudLabs/conf_files/celery-defaults /etc/default/celeryd
-sudo update-rc.d celeryd defaults 25
-sudo /etc/init.d/celeryd restart
 ```
 
 Set up Apache:
@@ -194,6 +184,16 @@ source ../venv/bin/activate
 sudo -u cloudlabs-wsgi -E -- `which flask` db upgrade
 ```
 
+Set up Celery & RabbitMQ:
+```bash
+sudo apt-get install rabbitmq-server
+sudo cp CloudLabs/conf_files/rabbitmq-server /etc/default/rabbitmq-server
+sudo cp CloudLabs/conf_files/celery-init /etc/init.d/celeryd
+sudo cp CloudLabs/conf_files/celery-defaults /etc/default/celeryd
+sudo update-rc.d celeryd defaults 25
+sudo /etc/init.d/celeryd restart
+```
+
 ### Upgrading the staging server
 
 Some of the above steps also need to be run when upgrading the CloudLabs software.
@@ -218,3 +218,4 @@ Notably:
     * http://docs.sqlalchemy.org/en/latest/orm/tutorial.html
 * Celery:
     * http://docs.celeryproject.org/en/latest/userguide/daemonizing.html
+    * https://citizen-stig.github.io/2016/02/17/using-celery-with-flask-factories.html
