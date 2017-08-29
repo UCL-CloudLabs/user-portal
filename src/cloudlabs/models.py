@@ -168,23 +168,28 @@ class Host(Model):
     def parsed_state(self):
         """Lazily parse the Terraform state as JSON when needed."""
         if not hasattr(self, '_state'):
+            if not self.terraform_state:
+                return {}
             self._state = json.loads(self.terraform_state)
         return self._state
 
     @property
     def vm_info(self):
         """Extract our VM resource info from the Terraform state."""
-        resources = self.parsed_state['modules'][0]['resources']
-        return resources['azurerm_virtual_machine.vm']['primary']['attributes']
+        try:
+            resources = self.parsed_state['modules'][0]['resources']
+            return resources['azurerm_virtual_machine.vm']['primary']['attributes']
+        except (KeyError, AttributeError):
+            return {}
 
     @property
     def vm_id(self):
         """Extract our VM resource info from the Terraform state."""
-        return self.vm_info['id']
+        return self.vm_info.get('id', 'Error retrieving ID')
 
     @property
     def vm_size(self):
-        return self.vm_info['vm_size']
+        return self.vm_info.get('vm_size', 'Unknown')
 
     @property
     def os_info(self):
@@ -195,5 +200,5 @@ class Host(Model):
                     info['type'] = value
                 elif key.endswith('sku'):
                     info['version'] = value
-        info = info['type'] + ' ' + info['version']
+        info = (info['type'] + ' ' + info['version']).strip()
         return info or 'Unknown'
