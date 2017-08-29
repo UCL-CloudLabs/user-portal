@@ -29,9 +29,9 @@
     </p>
   {% endif %}
 
-  <pre>
+  <code style="white-space: pre-wrap;">
 {{ host.deploy_log }}
-  </pre>
+  </code>
 
   {% if host.status == HostStatus.error %}
     <p>Deploying this host failed. See the log above for more information.</p>
