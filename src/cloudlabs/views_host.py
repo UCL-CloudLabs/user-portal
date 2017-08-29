@@ -26,6 +26,8 @@ blueprint = Blueprint('host', __name__)
 @login_required
 def info(id):
     host = Host.query.get_or_404(id)
+    if host.user is not g.user:
+        abort(404)
     return render_template('host_info.html', host=host)
 
 
@@ -69,6 +71,8 @@ def customise_setup():
     if form.validate_on_submit():
         # Save the updated setup script
         host = Host.query.get_or_404(form.id.data)
+        if host.user is not g.user:
+            abort(404)
         host.update(setup_script=form.setup_script.data)
         deploy(host)
         flash('Host "{}" added'.format(host.label), 'success')
@@ -80,6 +84,8 @@ def customise_setup():
 @role_required(Roles.owner)
 def edit(id):
     host = Host.query.get_or_404(id)
+    if host.user is not g.user:
+        abort(404)
     return render_template('not_implemented.html', host=host,
                            thing='Editing hosts')
 
@@ -105,6 +111,8 @@ def control(id):
         flash('Unsupported action "{}"'.format(action), 'error')
         return redirect(url_for('main.index'))
     host = Host.query.get_or_404(id)
+    if host.user is not g.user:
+        abort(404)
     return render_template('not_implemented.html', host=host,
                            thing='Running hosts')
 
@@ -113,6 +121,8 @@ def control(id):
 @role_required(Roles.owner)
 def download(id):
     host = Host.query.get_or_404(id)
+    if host.user is not g.user:
+        abort(404)
     return render_template('not_implemented.html', host=host,
                            thing='Downloading host images')
 
@@ -121,6 +131,8 @@ def download(id):
 @role_required(Roles.owner)
 def view_log(id):
     host = Host.query.get_or_404(id)
+    if host.user is not g.user:
+        abort(404)
     return render_template('deploy_log.html', host=host)
 
 
@@ -132,6 +144,3 @@ def deploy(host):
         'cloudlabs.deploy',
         args=(host.id,))
     flash('Host "{}" deployment scheduled'.format(host.label), 'success')
-
-    # host.terraform_state = render_template('state.json', host=host)
-    # host.save()
