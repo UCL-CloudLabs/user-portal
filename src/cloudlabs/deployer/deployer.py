@@ -74,11 +74,11 @@ class Deployer:
         The resulting dictionary is designed to be passed as the 'names'
         parameter to the Terraform template in self._render.
         """
-        base_name = 'UCLCloudLabs' + re.sub(r'[^a-zA-Z0-9]', '', host.dns_name)
+        base_name = 'ucl' + re.sub(r'[^a-zA-Z0-9]', '', host.dns_name)
         return {
             'resource_group': base_name + 'rg',
             'dns_name': base_name,
-            'storage': uuid.uuid5(uuid.NAMESPACE_DNS, host.basic_url),
+            'storage': uuid.uuid5(uuid.NAMESPACE_DNS, host.basic_url).hex[:24],
             'vm': base_name + 'vm',
         }
 
