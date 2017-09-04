@@ -28,8 +28,8 @@ class Deployer:
         '''
         self.template_path = Path(app_path, "deployer", "terraform")
         self.tempdir = TemporaryDirectory()
-        self.tfstate_path = self.tempdir.name
-        self.tf = Terraform(working_dir=self.tfstate_path)
+        self.tfstate_path = os.path.join(self.tfstate_path, 'terraform.tfstate')
+        self.tf = Terraform(working_dir=self.tempdir.name)
 
     def _render(self, host):
         '''
@@ -52,7 +52,7 @@ class Deployer:
         print(rendered_template)
 
         # try:
-        with open(str(Path(self.tfstate_path, "terraform.tf")), "w") as f:
+        with open(str(Path(self.tempdir.name, "terraform.tf")), "w") as f:
                 f.write(rendered_template)
         # except:
         #     # TODO: replace with logging and maybe raise?
@@ -96,9 +96,8 @@ class Deployer:
         updates = {
             'status': status
         }
-        state_path = os.path.join(self.tfstate_path, 'terraform.tfstate')
         try:
-            with open(state_path, 'r') as tf_state:
+            with open(self.tfstate_path, 'r') as tf_state:
                 updates['terraform_state'] = tf_state.read()
         except IOError:
             pass
@@ -118,7 +117,7 @@ class Deployer:
         :returns: the subprocess object
         '''
         process = subprocess.Popen(['terraform', name, '-no-color'],
-                                   cwd=self.tfstate_path,
+                                   cwd=self.tempdir.name,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT)
         for line in process.stdout:
@@ -136,7 +135,7 @@ class Deployer:
         "terraform.tfstate". This is a JSON file that contains the list of
         resources deployed and their status.
         '''
-        tf_state = Path(self.tempdir.name, 'terraform.tfstate')
+        tf_state = Path(self.tfstate_path)
 
         if tf_state.exists():
             if resource:
