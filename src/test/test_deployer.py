@@ -105,7 +105,7 @@ class TestDeployer:
         # Wait for 10 secs so we make sure app has had the time to be deployed.
         sleep(10)
         # Sample URL is exposing the webapp on port 5000
-        dnsname = deployer.resource_names(host).dns_name
+        dnsname = deployer.resource_names(host)['dns_name']
         url = "http://{}.ukwest.cloudapp.azure.com:5006".format(dnsname)
         # Check website is live
         response = requests.get(url)
