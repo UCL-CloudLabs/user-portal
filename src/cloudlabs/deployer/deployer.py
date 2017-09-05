@@ -19,8 +19,7 @@ class Deployer:
      * AZURE_CLIENT_ID: 'cloudlabs' Azure AD Application Client ID.
      * AZURE_CLIENT_ID: with your Azure AD Application Secret.
      * AZURE_SUBSCRIPTION_ID: UCL RSDG's Azure subscription ID.
-    TODO: For now these are stored in variables.tf, but they'll be moved to an
-    Azure key vault.
+    These variables are stored in environment variables and read by Terraform.
     '''
     def __init__(self, app_path=Path.cwd()):
         '''
@@ -28,7 +27,7 @@ class Deployer:
         '''
         self.template_path = Path(app_path, "deployer", "terraform")
         self.tempdir = TemporaryDirectory()
-        self.tfstate_path = os.path.join(self.tfstate_path, 'terraform.tfstate')
+        self.tfstate_path = os.path.join(self.tempdir.name, 'terraform.tfstate')
         self.tf = Terraform(working_dir=self.tempdir.name)
 
     def _render(self, host):
@@ -107,7 +106,7 @@ class Deployer:
                     command, return_code))
         host.update(**updates)
 
-    def _run_cmd(self, name, host):
+    def _run_cmd(self, name, host, args=[]):
         '''Run a terraform command for the given host.
 
         Will append the command's output & stderr to the host's deploy_log.
@@ -116,7 +115,7 @@ class Deployer:
         :param host: the host object being deployed
         :returns: the subprocess object
         '''
-        process = subprocess.Popen(['terraform', name, '-no-color'],
+        process = subprocess.Popen(['terraform', name, '-no-color'] + args,
                                    cwd=self.tempdir.name,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT)
@@ -125,6 +124,33 @@ class Deployer:
             host.update(deploy_log=host.deploy_log + line.decode('utf-8'))
         process.wait()
         return process
+
+    def destroy_host(self, host):
+        """Remove the given CloudLabs host from the cloud.
+
+        :param host: a Host instance
+        """
+        if not host.terraform_state:
+            host.update(
+                status=HostStatus.error,
+                deploy_log=host.deploy_log +
+                '\n\nUnable to destroy host as no state file present!\n\n')
+            return
+        # Write Terraform state to file so Terraform can destroy the host
+        with open(self.tfstate_path, 'w') as tf_state:
+            tf_state.write(host.terraform_state)
+        # We need to write a config file and initialise Terraform (TODO: fix this?)
+        self._render(host)
+        process = self._run_cmd('init', host)
+        if process.returncode != 0:
+            self._record_result(host, HostStatus.error, 'init', process.returncode)
+            return
+        # Now we can destroy the host
+        process = self._run_cmd('destroy', host, args=['-force'])
+        if process.returncode == 0:
+            self._record_result(host, HostStatus.defining)
+        else:
+            self._record_result(host, HostStatus.error, 'destroy', process.returncode)
 
     def destroy(self, resource=None):
         '''

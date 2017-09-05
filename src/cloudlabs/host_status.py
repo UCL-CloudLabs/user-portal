@@ -8,4 +8,5 @@ class HostStatus(Enum):
     starting = 'Starting'    # Machine is spinning up; service not live
     running = 'Running'      # Web app is running
     stopped = 'Stopped'      # Machine deployed but not turned on
+    destroying = 'Destroying'
     error = 'Failed to deploy'

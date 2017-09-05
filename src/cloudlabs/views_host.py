@@ -97,8 +97,11 @@ def delete(id):
     if host.user is not g.user:
         abort(404)
     label = host.label
-    host.delete()
-    flash('Virtual machine "{}" deleted'.format(label), 'success')
+    if host.status in [HostStatus.defining, HostStatus.error]:
+        host.delete()
+        flash('Virtual machine "{}" deleted'.format(label), 'success')
+    else:
+        destroy(host)
     return redirect(url_for('main.index'))
 
 
@@ -144,3 +147,14 @@ def deploy(host):
         'cloudlabs.deploy',
         args=(host.id,))
     flash('Host "{}" deployment scheduled'.format(host.label), 'success')
+
+
+def destroy(host):
+    """Signals Celery to destroy a VM in the background."""
+    if host.status is not HostStatus.destroying:
+        host.update(status=HostStatus.destroying)
+        celery = create_celery(current_app)
+        celery.send_task(
+            'cloudlabs.destroy',
+            args=(host.id,))
+    flash('Host "{}" destruction scheduled'.format(host.label), 'success')

@@ -3,7 +3,7 @@
 
 {% block meta %}
   {{ super() }}
-  {% if host.status == HostStatus.deploying %}
+  {% if host.status in [HostStatus.deploying, HostStatus.destroying] %}
     <meta http-equiv="refresh" content="5">
   {% endif %}
 {% endblock meta %}
@@ -20,6 +20,10 @@
 
   {% if host.status == HostStatus.error %}
     <p>Deploying this host failed. See the log below for more information.</p>
+  {% elif host.status == HostStatus.destroying %}
+    <p>This host is currently being destroyed.</p>
+  {% elif host.status == HostStatus.defining %}
+    <p>This host is not currently deployed to the cloud.</p>
   {% elif host.status != HostStatus.deploying %}
     <p>
     This host has been successfully deployed.
@@ -35,6 +39,10 @@
 
   {% if host.status == HostStatus.error %}
     <p>Deploying this host failed. See the log above for more information.</p>
+  {% elif host.status == HostStatus.destroying %}
+    <p>This host is currently being destroyed.</p>
+  {% elif host.status == HostStatus.defining %}
+    <p>This host is not currently deployed to the cloud.</p>
   {% elif host.status != HostStatus.deploying %}
     <p>
     This host has been successfully deployed.
