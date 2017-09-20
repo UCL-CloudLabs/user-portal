@@ -25,7 +25,6 @@ pathlib==1.0.1
 psycopg2==2.7.1
 python-dateutil==2.6.1    # via alembic
 python-editor==1.0.3      # via alembic
-python-terraform==0.8.6
 pytz==2017.2              # via celery
 requests==2.14.2
 six==1.10.0               # via flask-sso, python-dateutil

@@ -4,7 +4,6 @@ import subprocess
 from flask import current_app
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
-from python_terraform import Terraform
 from tempfile import TemporaryDirectory
 
 from ..host_status import HostStatus
@@ -28,7 +27,6 @@ class Deployer:
         self.template_path = Path(app_path, "deployer", "terraform")
         self.tempdir = TemporaryDirectory()
         self.tfstate_path = os.path.join(self.tempdir.name, 'terraform.tfstate')
-        self.tf = Terraform(working_dir=self.tempdir.name)
 
     def _render(self, host):
         '''
@@ -125,7 +123,7 @@ class Deployer:
         process.wait()
         return process
 
-    def destroy_host(self, host):
+    def destroy(self, host):
         """Remove the given CloudLabs host from the cloud.
 
         :param host: a Host instance
@@ -151,60 +149,3 @@ class Deployer:
             self._record_result(host, HostStatus.defining)
         else:
             self._record_result(host, HostStatus.error, 'destroy', process.returncode)
-
-    def destroy(self, resource=None):
-        '''
-        Deletes given Terraform resource.
-        It has to make sure there is a Terraform state containing the resource
-        that will be destroyed.
-        After applying a plan, Terraform saves the state on
-        "terraform.tfstate". This is a JSON file that contains the list of
-        resources deployed and their status.
-        '''
-        tf_state = Path(self.tfstate_path)
-
-        if tf_state.exists():
-            if resource:
-                with open(tf_state) as f:
-                    tf_data = json.load(f)
-                try:
-                    res_label = tf_data['modules'][0]['resources'][resource]
-                except KeyError:
-                    print("Resource not found in Terraform state. The "
-                          "available resources for destroying are {}.".format(
-                           ', '.join(
-                             [r for r in tf_data['modules'][0]['resources']])))
-                    # TODO raise
-                    return
-                return_code, stdout, stderr = self.tf.destroy(
-                                                        res_label,
-                                                        capture_output=False
-                                                        )
-            else:
-                print("Destroying all resources...")
-                return_code, stdout, stderr = self.tf.destroy(
-                                                        capture_output=False)
-
-            if return_code == 0:  # All went well
-                return ("Resource {} destroyed successfully.".format(resource))
-            else:
-                # TODO raise
-                return ("Something went wrong when destroying {}: {}".format(
-                                                                    resource,
-                                                                    stderr))
-        else:
-            print("Terraform state does not exist in {}".format(tf_state))
-
-    def refresh(self):
-        '''
-        User Terraform to update the current state file against real resources.
-        '''
-        # First refresh state
-        return_code, stdout, stderr = self.tf.refresh()
-
-        if return_code == 0:  # All went well
-            return ("Local Terraform state successfully updated.")
-        else:
-            # TODO raise
-            return ("Something went wrong when updating state: {}".format(
-                                                                       stderr))
