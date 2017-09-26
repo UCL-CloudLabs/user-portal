@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+
+{% block meta %}
+  {{ super() }}
+  {% if host.status == HostStatus.deploying %}
+    <meta http-equiv="refresh" content="5">
+  {% endif %}
+{% endblock meta %}
+
+
+{% block breadcrumb_links %}
+  {{ super() }}
+  <li class="breadcrumb__item">{{ host.label }}</li>
+{% endblock breadcrumb_links %}
+
+
+{% block content %}
+  <h1>Deployment log for <a href="{{ url_for('host.info', id=host.id) }}">{{ host.label }}</a></h1>
+
+  {% if host.status == HostStatus.error %}
+    <p>Deploying this host failed. See the log below for more information.</p>
+  {% elif host.status != HostStatus.deploying %}
+    <p>
+    This host has been successfully deployed.
+    {% if host.status == HostStatus.running %}
+      You can view the live application at <a href="{{ host.link }}">{{ host.basic_url }}</a>.
+    {% endif %}
+    </p>
+  {% endif %}
+
+  <code style="white-space: pre-wrap;">
+{{ host.deploy_log }}
+  </code>
+
+  {% if host.status == HostStatus.error %}
+    <p>Deploying this host failed. See the log above for more information.</p>
+  {% elif host.status != HostStatus.deploying %}
+    <p>
+    This host has been successfully deployed.
+    {% if host.status == HostStatus.running %}
+      You can view the live application at <a href="{{ host.link }}">{{ host.basic_url }}</a>.
+    {% endif %}
+    Or, return to your <a href="{{ url_for('main.index') }}">dashboard</a>.
+    </p>
+  {% endif %}
+{% endblock content %}
+
+
+{% block scripts %}
+  {{ super() }}
+  {# TODO: Refresh log using AJAX #}
+{% endblock scripts %}

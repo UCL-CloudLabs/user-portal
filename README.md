@@ -28,16 +28,16 @@ Download the appropriate Terraform binary for your system following [Terraform's
 export FLASK_APP=autoapp.py
 export FLASK_DEBUG=True
 export APP_SETTINGS=cloudlabs.config.DevConfig
-export PRIVATE_SSH_KEY_PATH=<path/to/an/ssh/private/key>
 ```
 
-You will also need the following environment variables set in order to deploy machines. Ask a team member for their secret values:
-```bash
-export TF_VAR_azure_tenant_id=
-export TF_VAR_azure_client_id=
-export TF_VAR_azure_client_secret=
-export TF_VAR_azure_subscription_id=
-```
+### Configure secrets
+
+Copy the file `src/cloudlabs/secrets.example.py` as `src/cloudlabs/secrets.py` and fill in suitable values.
+Ask a team member for the Azure credentials.
+
+### Install the background task queue
+
+We use Celery for this with the RabbitMQ broker. The former has already been installed with `pip`; the latter needs to be set up following the instructions at <http://docs.celeryproject.org/en/latest/getting-started/brokers/rabbitmq.html>.
 
 ### Create a database and run migrations
 
@@ -75,6 +75,22 @@ psql -d cloudlabs
 ```
 Replacing `1` with your user's id if necessary.
 
+### Launch worker(s) to process the task queue
+
+For a simple development setup, in a separate terminal run:
+```bash
+cd src
+PATH=/usr/local/sbin:$PATH
+export RABBITMQ_NODE_IP_ADDRESS=127.0.0.1
+rabbitmq-server -detached
+celery worker -A cloudlabs.tasks.worker.celery --loglevel=info
+```
+
+You can stop the worker using Control-C, and then the broker with
+```bash
+rabbitmqctl stop
+```
+
 ### Run the webapp
 
 ```bash
@@ -87,7 +103,7 @@ flask run
 This is documenting all the steps I'm performing on the staging machine to get a test instance running.
 It will be automated later.
 
-Add security rules allowing HTTPS and HTTP access, under 'Network interface' -> 'Network security group' -> 'Inbound security rules'
+Add Azure security rules allowing HTTPS and HTTP access, under 'Network interface' -> 'Network security group' -> 'Inbound security rules'
 
 Install system packages:
 
@@ -111,12 +127,15 @@ pip install -r requirements/base.txt
 
 (TODO: investigate using ``python3 -m venv `pwd`/venv`` instead)
 
-Quick & dirty test:
+Copy `src/cloudlabs/secrets.example.py` to `src/cloudlabs/secrets.py` and fill in values.
 
+Install Terraform:
 ```bash
-cd src
-sudo apache2ctl stop
-sudo FLASK_APP=autoapp.py /home/cloudlabs/user-portal/venv/bin/flask run --host=0.0.0.0 --port=80
+cd
+curl -sSL -o terraform.zip "https://releases.hashicorp.com/terraform/0.10.2/terraform_0.10.2_linux_amd64.zip"
+sudo apt-get install unzip
+unzip terraform.zip
+sudo cp terraform /usr/local/bin/terraform
 ```
 
 Set up Apache:
@@ -165,6 +184,25 @@ source ../venv/bin/activate
 sudo -u cloudlabs-wsgi -E -- `which flask` db upgrade
 ```
 
+Set up Celery & RabbitMQ:
+```bash
+sudo apt-get install rabbitmq-server
+sudo cp CloudLabs/conf_files/rabbitmq-server /etc/default/rabbitmq-server
+sudo cp CloudLabs/conf_files/celery-init /etc/init.d/celeryd
+sudo cp CloudLabs/conf_files/celery-defaults /etc/default/celeryd
+sudo update-rc.d celeryd defaults 25
+sudo /etc/init.d/celeryd restart
+```
+
+### Upgrading the staging server
+
+Some of the above steps also need to be run when upgrading the CloudLabs software.
+Notably:
+1. Pull latest changes from GitHub
+2. Install latest package requirements
+3. Apply DB migrations
+4. Restart Celery & Apache
+
 
 ## Useful reference websites
 
@@ -179,3 +217,6 @@ sudo -u cloudlabs-wsgi -E -- `which flask` db upgrade
     * http://flask-sqlalchemy.pocoo.org/2.1/quickstart/
     * https://flask-migrate.readthedocs.io/en/latest/
     * http://docs.sqlalchemy.org/en/latest/orm/tutorial.html
+* Celery:
+    * http://docs.celeryproject.org/en/latest/userguide/daemonizing.html
+    * https://citizen-stig.github.io/2016/02/17/using-celery-with-flask-factories.html

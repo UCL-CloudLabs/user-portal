@@ -3,6 +3,7 @@
 
 # Environment setup
 env.sh
+secrets.py
 
 # Python stuff
 __pycache__
@@ -17,3 +18,4 @@ __pycache__
 # App secrets
 src/test/secrets.tar
 src/test/id*
+.travis.tar

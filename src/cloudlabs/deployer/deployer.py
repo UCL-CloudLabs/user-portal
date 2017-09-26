@@ -1,9 +1,15 @@
 import json
+import os
+import re
+import subprocess
+import uuid
 from flask import current_app
-from jinja2 import Template, TemplateNotFound, Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 from python_terraform import Terraform
 from tempfile import TemporaryDirectory
+
+from ..host_status import HostStatus
 
 
 class Deployer:
@@ -36,9 +42,10 @@ class Deployer:
         # try:
         j2_env = Environment(loader=FileSystemLoader(str(self.template_path)))
         rendered_template = j2_env.get_template(
-                'terraform.tf_template').render(
-                host=host,
-                private_key_path=current_app.config['PRIVATE_SSH_KEY_PATH'])
+            'terraform.tf_template').render(
+            host=host,
+            names=self.resource_names(host),
+            private_key_path=current_app.config['PRIVATE_SSH_KEY_PATH'])
         # # except TemplateNotFound:
         #     print("Template terraform-main.tf_template not found in {}."
         #               .format(template_path))
@@ -54,6 +61,27 @@ class Deployer:
         #     # TODO: replace with logging and maybe raise?
         #     print("Error writing terraform's config file.")
 
+    def resource_names(self, host):
+        """Generate names for cloud resources for the given host.
+
+        A deployed host requires various resources alongside the bare VM, such
+        as networking, storage, containers, etc. Different providers have
+        different constraints on these names, so we don't want to hardcode this
+        within the Host class. Instead this method returns a dictionary with
+        suitable names based on a given host configuration, providing a hook to
+        abstract provider requirements.
+
+        The resulting dictionary is designed to be passed as the 'names'
+        parameter to the Terraform template in self._render.
+        """
+        base_name = 'ucl' + re.sub(r'[^a-zA-Z0-9]', '', host.dns_name)
+        return {
+            'resource_group': base_name + 'rg',
+            'dns_name': base_name,
+            'storage': uuid.uuid5(uuid.NAMESPACE_DNS, host.basic_url).hex[:24],
+            'vm': base_name + 'vm',
+        }
+
     def deploy(self, host):
         '''
         Renders the Terraform template with given user input.
@@ -66,26 +94,62 @@ class Deployer:
         #     # TODO: logging
         #     return "Error when rendering Terraform template."
 
-        # TODO: Do something with the things apply returns.
-        #       Any exceptions raised by python_terraform?
-        self.tf.init(capture_output=False)
-        return_code, stdout, stderr = self.tf.apply(capture_output=False)
-
-        if return_code == 0:  # All went well
-            return ("Deployed! You can now SSH to it as "
-                    "{}@{}.ukwest.cloudapp.azure.com. "
-                    "Your website is deployed at."
-                    "http://{}.ukwest.cloudapp.azure.com:{}".format(
-                                                        host.admin_username,
-                                                        host.dns_name,
-                                                        host.dns_name,
-                                                        host.port))
+        host.update(status=HostStatus.deploying,
+                    deploy_log='Initialising deployment...\n\n')
+        process = self._run_cmd('init', host)
+        if process.returncode != 0:
+            self._record_result(host, HostStatus.error, 'init', process.returncode)
+            return
+        host.update(deploy_log=host.deploy_log + '\n\nRunning deployment...\n\n')
+        process = self._run_cmd('apply', host)
+        if process.returncode == 0:
+            self._record_result(host, HostStatus.running)
         else:
-            # TODO raise
-            return ("Something went wrong with the deployment: {}".format(
-                                                                        stderr
-                                                                        )
-                    )
+            self._record_result(host, HostStatus.error, 'apply', process.returncode)
+
+    def _record_result(self, host, status, command=None, return_code=None):
+        """Record the result of a Terraform run in the DB.
+
+        :param host: the host being deployed
+        :param status: the result status of the deployment
+        :param command: the Terraform command name that was run
+            (only required if there was an error)
+        :param return_code: the return code of the Terraform command
+            (only required if there was an error)
+        """
+        updates = {
+            'status': status
+        }
+        state_path = os.path.join(self.tfstate_path, 'terraform.tfstate')
+        try:
+            with open(state_path, 'r') as tf_state:
+                updates['terraform_state'] = tf_state.read()
+        except IOError:
+            pass
+        if status is HostStatus.error:
+            updates['deploy_log'] = (
+                host.deploy_log + '\n\nTerraform {} failed with return code {}\n'.format(
+                    command, return_code))
+        host.update(**updates)
+
+    def _run_cmd(self, name, host):
+        '''Run a terraform command for the given host.
+
+        Will append the command's output & stderr to the host's deploy_log.
+
+        :param name: the name of the Terraform command to run
+        :param host: the host object being deployed
+        :returns: the subprocess object
+        '''
+        process = subprocess.Popen(['terraform', name, '-no-color'],
+                                   cwd=self.tfstate_path,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT)
+        for line in process.stdout:
+            print(line.decode('utf-8'), end='')
+            host.update(deploy_log=host.deploy_log + line.decode('utf-8'))
+        process.wait()
+        return process
 
     def destroy(self, resource=None):
         '''

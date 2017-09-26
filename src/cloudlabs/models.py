@@ -3,8 +3,9 @@ import json
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref
 
-from .extensions import db
 from .database import Model
+from .extensions import db
+from .host_status import HostStatus
 from .roles import Roles
 
 
@@ -107,6 +108,11 @@ class Host(Model):
     port = db.Column(db.Integer)
     setup_script = db.Column(db.Text)
 
+    # Information about the running host
+    status = db.Column(db.Enum(HostStatus), nullable=False,
+                       server_default=HostStatus.defining.name)
+    deploy_log = db.Column(db.Text, server_default='')
+
     def __repr__(self):
         return '<Host: dns={}, user={}, label={}>'.format(
             self.dns_name, self.user, self.label)
@@ -140,19 +146,15 @@ class Host(Model):
 
     @property
     def link(self):
-        """The full URL to this host when deployed, for use in href
-           attributes."""
-        return 'http://' + self.basic_url
+        """The full URL to this host when deployed, for use in href attributes."""
+        # return 'http://' + self.basic_url
+        return 'http://{}.ukwest.cloudapp.azure.com:{}'.format(
+            self.dns_name, self.port)
 
     @property
     def basic_url(self):
         """This host's URL without scheme, suitable for user display."""
         return self.dns_name + '.cloudlabs.rc.ucl.ac.uk'
-
-    @property
-    def status(self):
-        """Whether this host is Running, Restarting, or Stopped."""
-        return 'Stopped'
 
     @property
     def auth_type(self):
@@ -166,23 +168,28 @@ class Host(Model):
     def parsed_state(self):
         """Lazily parse the Terraform state as JSON when needed."""
         if not hasattr(self, '_state'):
+            if not self.terraform_state:
+                return {}
             self._state = json.loads(self.terraform_state)
         return self._state
 
     @property
     def vm_info(self):
         """Extract our VM resource info from the Terraform state."""
-        resources = self.parsed_state['modules'][0]['resources']
-        return resources['azurerm_virtual_machine.vm']['primary']['attributes']
+        try:
+            resources = self.parsed_state['modules'][0]['resources']
+            return resources['azurerm_virtual_machine.vm']['primary']['attributes']
+        except (KeyError, AttributeError):
+            return {}
 
     @property
     def vm_id(self):
         """Extract our VM resource info from the Terraform state."""
-        return self.vm_info['id']
+        return self.vm_info.get('id', 'Error retrieving ID')
 
     @property
     def vm_size(self):
-        return self.vm_info['vm_size']
+        return self.vm_info.get('vm_size', 'Unknown')
 
     @property
     def os_info(self):
@@ -193,5 +200,5 @@ class Host(Model):
                     info['type'] = value
                 elif key.endswith('sku'):
                     info['version'] = value
-        info = info['type'] + ' ' + info['version']
+        info = (info['type'] + ' ' + info['version']).strip()
         return info or 'Unknown'

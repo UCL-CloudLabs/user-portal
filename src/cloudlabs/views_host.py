@@ -10,11 +10,12 @@ from flask import (
     request,
     url_for,
 )
-from .deployer.deployer import Deployer
 from .forms.add_host import AddHostForm
 from .forms.customise_setup import CustomiseSetupForm
+from .host_status import HostStatus
 from .models import Host
 from .roles import Roles
+from .tasks import create_celery
 from .utils import login_required, role_required
 
 
@@ -25,6 +26,8 @@ blueprint = Blueprint('host', __name__)
 @login_required
 def info(id):
     host = Host.query.get_or_404(id)
+    if host.user is not g.user:
+        abort(404)
     return render_template('host_info.html', host=host)
 
 
@@ -56,7 +59,6 @@ def add():
         else:
             new_host = Host.create(**fields)
             deploy(new_host)
-            flash('Host "{}" added'.format(form.label.data), 'success')
             return redirect(url_for('main.index'))
 
     return render_template('add_host.html', form=form)
@@ -69,6 +71,8 @@ def customise_setup():
     if form.validate_on_submit():
         # Save the updated setup script
         host = Host.query.get_or_404(form.id.data)
+        if host.user is not g.user:
+            abort(404)
         host.update(setup_script=form.setup_script.data)
         deploy(host)
         flash('Host "{}" added'.format(host.label), 'success')
@@ -80,6 +84,8 @@ def customise_setup():
 @role_required(Roles.owner)
 def edit(id):
     host = Host.query.get_or_404(id)
+    if host.user is not g.user:
+        abort(404)
     return render_template('not_implemented.html', host=host,
                            thing='Editing hosts')
 
@@ -105,6 +111,8 @@ def control(id):
         flash('Unsupported action "{}"'.format(action), 'error')
         return redirect(url_for('main.index'))
     host = Host.query.get_or_404(id)
+    if host.user is not g.user:
+        abort(404)
     return render_template('not_implemented.html', host=host,
                            thing='Running hosts')
 
@@ -113,17 +121,26 @@ def control(id):
 @role_required(Roles.owner)
 def download(id):
     host = Host.query.get_or_404(id)
+    if host.user is not g.user:
+        abort(404)
     return render_template('not_implemented.html', host=host,
                            thing='Downloading host images')
 
 
+@blueprint.route('/host/<int:id>/view_log')
+@role_required(Roles.owner)
+def view_log(id):
+    host = Host.query.get_or_404(id)
+    if host.user is not g.user:
+        abort(404)
+    return render_template('deploy_log.html', host=host)
+
+
 def deploy(host):
-    """Calls deployer to launch a VM.
-
-    If successful, adds the Terraform state file to the DB.
-    """
-    deployer = Deployer(current_app.root_path)
-    deployer.deploy(host)
-
-    # host.terraform_state = render_template('state.json', host=host)
-    # host.save()
+    """Signals Celery to launch a VM in the background."""
+    host.update(status=HostStatus.deploying)
+    celery = create_celery(current_app)
+    celery.send_task(
+        'cloudlabs.deploy',
+        args=(host.id,))
+    flash('Host "{}" deployment scheduled'.format(host.label), 'success')

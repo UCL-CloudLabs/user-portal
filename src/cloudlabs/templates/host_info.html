@@ -36,6 +36,10 @@
         <a onclick="show_password(this)">click to show</a>
       {% endif %}
     </dd>
+    {% if host.status != HostStatus.defining %}
+    <dt>Deployment log</dt>
+    <dd><a href="{{ url_for('host.view_log', id=host.id) }}">View deployment log</a></dd>
+    {% endif %}
   </dl>
 {% endblock content %}
 

@@ -49,14 +49,14 @@ class TestDeployer:
     @pytest.fixture
     def app(self):
         return create_app(
-                        os.getenv('APP_SETTINGS', 'cloudlabs.config.Config'))
+            os.getenv('APP_SETTINGS', 'cloudlabs.config.Config'))
 
     @pytest.fixture
     def public_key(self):
         '''
         Read public key contents from encrypted file, ignore newline
         '''
-        with open(Path('test/id_rsa_travis_azure.pub').absolute()) as f:
+        with open(str(Path('test/id_rsa_travis_azure.pub').absolute())) as f:
             public_key = f.read().rstrip('\n')
         return public_key
 
@@ -95,9 +95,9 @@ class TestDeployer:
         Check the path where the terraform files are is setup correctly.
         '''
         assert deployer.template_path == Path(
-                                    'cloudlabs/deployer/terraform').absolute()
+            'cloudlabs/deployer/terraform').absolute()
 
-    def test_deployer(self, app, resource_name, deployer, dnsname, host):
+    def test_deployer(self, app, resource_name, deployer, host):
         '''
         Create a test host with made up parameters, deploy on azure and ping.
         '''
@@ -105,6 +105,7 @@ class TestDeployer:
         # Wait for 10 secs so we make sure app has had the time to be deployed.
         sleep(10)
         # Sample URL is exposing the webapp on port 5000
+        dnsname = deployer.resource_names(host)['dns_name']
         url = "http://{}.ukwest.cloudapp.azure.com:5006".format(dnsname)
         # Check website is live
         response = requests.get(url)
