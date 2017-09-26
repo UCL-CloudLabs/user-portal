@@ -148,7 +148,7 @@ class Host(Model):
     def link(self):
         """The full URL to this host when deployed, for use in href attributes."""
         # return 'http://' + self.basic_url
-        return 'http://{}.ukwest.cloudapp.azure.com:{}'.format(
+        return 'http://ucl{}.ukwest.cloudapp.azure.com:{}'.format(
             self.dns_name, self.port)
 
     @property
