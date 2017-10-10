@@ -1,8 +1,6 @@
 import json
 import os
-import re
 import subprocess
-import uuid
 from flask import current_app
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
