@@ -25,13 +25,14 @@ class AddHostForm(FlaskForm):
                     'benefit',
         validators=[v.Optional()])
 
-    dns_name = StringField(
+    base_name = StringField(
         'URL',
         description='The canonical DNS name for this host, which must be '
                     'globally unique. Note that the .cloudlabs.rc.ucl.ac.uk '
                     'suffix will be added automatically, and should not be '
                     'included here.',
         validators=[v.Length(min=1, max=Host.dns_name.type.length)])
+        # TODO adapt max length to exclude suffixes/randomisation?
 
     admin_username = StringField(
         'Admin username',
