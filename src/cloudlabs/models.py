@@ -7,7 +7,7 @@ from .database import Model
 from .extensions import db
 from .host_status import HostStatus
 from .roles import Roles
-import names
+from . import names
 
 
 class User(Model):
