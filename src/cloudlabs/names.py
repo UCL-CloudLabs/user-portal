@@ -12,7 +12,7 @@ def create_host_name(base_name):
     """Return a domain name that is likely to be unique."""
     clean_name = 'ucl' + re.sub(r'[^a-zA-Z0-9]', '', base_name)
     # Append a random adjective, noun and 4-digit hex token
-    return clean_name + Haikunator(delimiter='', token_hex=True)
+    return clean_name + Haikunator().haikunate(delimiter='', token_hex=True)
 
 def resource_names(host):
     """Generate names for cloud resources for the given host.
