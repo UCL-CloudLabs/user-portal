@@ -43,7 +43,7 @@ def destroy(host_id):
             # Host was deleted already
             return
         deployer = Deployer(current_app.root_path)
-        deployer.destroy_host(host)
+        deployer.destroy(host)
     except SoftTimeLimitExceeded:
         host.update(status=HostStatus.error,
                     deploy_log=host.deploy_log +
