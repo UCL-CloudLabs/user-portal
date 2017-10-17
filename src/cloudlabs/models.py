@@ -144,6 +144,8 @@ class Host(Model):
         :param port: the port to expose, which should match that used by the
                      service defined in the Dockerfile
         """
+        all_args = kwargs.copy()
+        all_args['azure_url'] = names.azure_url(all_args['dns_name'])
         return '\n'.join([
             "sudo apt-get update",
             "sudo apt-get install docker.io -y",
@@ -152,7 +154,7 @@ class Host(Model):
             "sudo docker build -t web-app .",
             ("sudo docker run -d -e "
              "AZURE_URL={azure_url} -p {port}:{port} web-app")]
-            ).format(**kwargs, azure_url=names.azure_url(kwargs['dns_name']))
+            ).format(**all_args)
 
     @property
     def link(self):
