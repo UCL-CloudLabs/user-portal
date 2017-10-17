@@ -93,7 +93,7 @@ class Host(Model):
     id = db.Column(db.Integer, primary_key=True)
     # The canonical name of the host, as given by the user
     base_name = db.Column(db.String(50), unique=True, index=True,
-                             nullable=False)
+                          nullable=False)
     # The actual domain name, including anything added for randomisation
     dns_name = db.Column(db.String(50), unique=True, index=True,
                          nullable=False)

@@ -32,7 +32,7 @@ class AddHostForm(FlaskForm):
                     'suffix will be added automatically, and should not be '
                     'included here.',
         validators=[v.Length(min=1, max=Host.dns_name.type.length)])
-        # TODO adapt max length to exclude suffixes/randomisation?
+    # TODO adapt max length to exclude suffixes/randomisation?
 
     admin_username = StringField(
         'Admin username',
