@@ -1,14 +1,26 @@
+# Azure subscription variables
+variable "azure_subscription_id" {
+}
+variable "azure_client_id" {
+}
+variable "azure_client_secret" {
+}
+variable "azure_tenant_id" {
+}
+
 # Configure Azure provider
 provider "azurerm" {
   subscription_id = "${var.azure_subscription_id}"
   client_id       = "${var.azure_client_id}"
   client_secret   = "${var.azure_client_secret}"
   tenant_id       = "${var.azure_tenant_id}"
+  # Don't upgrade to newer versions automatically
+  version = "~> 0.1"
 }
 
 # create a resource group if it doesn't exist
 resource "azurerm_resource_group" "rg" {
-    name = "orangebreeze2189rg"
+    name = "uclsamplerg"
     location = "ukwest"
 }
 
@@ -35,7 +47,7 @@ resource "azurerm_public_ip" "ip" {
     location = "ukwest"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     public_ip_address_allocation = "dynamic"
-    domain_name_label = "royalmode2149"
+    domain_name_label = "uclsample"
 
     tags {
         environment = "staging"
@@ -59,10 +71,11 @@ resource "azurerm_network_interface" "ni" {
 
 # create storage account
 resource "azurerm_storage_account" "storage" {
-    name = "orangebreeze2189storage"
+    name = "fa0e30c92f4f5ca69c256850"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location = "ukwest"
-    account_type = "Standard_LRS"
+    account_replication_type = "LRS"
+    account_tier = "Standard"
 
     tags {
         environment = "staging"
@@ -82,11 +95,11 @@ resource "azurerm_storage_container" "storagecont" {
 
 # create virtual machine
 resource "azurerm_virtual_machine" "vm" {
-    name = "orangebreeze2189vm"
+    name = "uclsamplevm"
     location = "ukwest"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     network_interface_ids = ["${azurerm_network_interface.ni.id}"]
-    vm_size = "Standard_A0"
+    vm_size = "Standard_A6"
 
     storage_image_reference {
         publisher = "Canonical"
@@ -103,36 +116,43 @@ resource "azurerm_virtual_machine" "vm" {
     }
 
     os_profile {
-        computer_name = "orangebreeze2189"
-        admin_username = "testuser"
-        admin_password = "Password123"
+        computer_name = "sample"
+        admin_username = "anastasis"
+        
+        admin_password = "Password!123"
+        
     }
 
     os_profile_linux_config {
-      disable_password_authentication = false
+      disable_password_authentication = true
       ssh_keys = [{
-        path     = "/home/testuser/.ssh/authorized_keys"
-        key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDIjSk9W1iu8Nq01i0Ng/U4L+nFPHpU44czXqnY8I9+szOo8ZpbvaoC52hVFQRCmsGTiPhLJYzhUR90DGyXDC9+1tpybHrDO4VvabuLnae/8I2QkGbbrDPm3iNFgmx01N4odUwAn7bi5S49e0fSqnzJkNDNUXf+wtIpvgxxXM6rMBr3nWR/OYHvo1/ZGaFbtS9wKvQHn7fP8OmiJnCnfGCJfT2UylyRAjKb5D9PnrRSgsrWBbUGrwq7svuG+tNtRI+w97f//evKubyUGBNeaOSbtlhu7pPWDtvyCcYAWaRcAusdS4C9KClX/y/gvg4Zyrlh3/jSwLsY1gpZlHHWFjjSKpQz25FvGNJbGkYaVSzfHDUN3VSJZgJO5oX8W0tsYbDuKSBSADSP/D3BjJD11RhUXv0DSB9mhdXbemyVdS9QkBdBhJLxzQ8AVYwiXmTJRP99Y5AS0+UQJqO40u/aWkevUziWDfUj1uB+vylQDmg7qDDcG6ZDMX7EAcmRLhII+U/rc0QVRPQqYB+HC1fWKqyans/D0wgMvmfvjz0aohg97wbvQoldeZHbi/7wLHFFKtlDGiEJYPDR4iOHQQ4kG5ZRv5CYMI88km9rE9Ode2KqIKFRRgFfTJFzE52EpHMBcWcggK0Ua6+vaZ8SfKPg76JFnOluCIGQz+Z3BVDWR89yTQ== r.alegre@ucl.ac.uk"
-      }]
+            path     = "/home/anastasis/.ssh/authorized_keys"
+            key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1kFcLSvCut62wCdq/oWXbbjLAXnKaKzzJAGYoYq0994nqWlhyUfTdWPt0SDQHKJZ9OMevyFB9qf0Qfuzd7+f7bsrUHuaaEavK3gMo+j1iKwGaXO36za9fwKMXiWnXFkgmUNJ51gdSKZjb//f9LicXIr4qVTfk+d6MBTBJmLxDSKdl+Sl3pK1K2YwI+2KQwj9t3udf/B8Tq/D1G617LFe+3EitByIpJhz6CnBXWv9raZWqUNeHQ2RqwgfHWJHztA3zhecDH4HizqW8DuPoH+pGQHwvx0nKYp+/XoUMyTfZ8bMtbS8PFRI6EXtYkG/K8v6orRa6Rwtd4C4zL0q228mz ageorgou@rits-102.rits-isd.ucl.ac.uk"
+          },{
+            path     = "/home/anastasis/.ssh/authorized_keys"
+            key_data = "${file("/Users/ageorgou/.ssh/id_rsa.pub")}"
+          }
+      ]
     }
 
     connection {
-        host = "royalmode2149.ukwest.cloudapp.azure.com"
-        user = "testuser"
+        host = "uclsample.ukwest.cloudapp.azure.com"
+        user = "anastasis"
         type = "ssh"
-        private_key = "${file("~/.ssh/id_rsa_unencrypt")}"
+        private_key = "${file("/Users/ageorgou/.ssh/id_rsa")}"
         timeout = "1m"
-        agent = true
+        agent = false
     }
 
     provisioner "remote-exec" {
         inline = [
-          "sudo apt-get update",
-          "sudo apt-get install docker.io -y",
-          "git clone https://github.com/UCL-CloudLabs/Docker-sample.git",
-          "cd Docker-sample",
-          "sudo docker build -t hello-flask .",
-          "sudo docker run -d -p 5000:5000 hello-flask"
+          
+              "sudo apt-get update",
+              "sudo apt-get install docker.io -y",
+              "git clone https://github.com/UCL-CloudLabs/docker-sample -b levine repo",
+              "cd repo",
+              "sudo docker build -t web-app .",
+              "sudo docker run -d -e AZURE_URL=sample.ukwest.cloudapp.azure.com -p 5006:5006 web-app",
         ]
     }
 
