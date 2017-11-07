@@ -15,7 +15,7 @@ provider "azurerm" {
   client_secret   = "${var.azure_client_secret}"
   tenant_id       = "${var.azure_tenant_id}"
   # Don't upgrade to newer versions automatically
-  version = "~> 0.1"
+  version = "~> 0.3"
 }
 
 # create a resource group if it doesn't exist
