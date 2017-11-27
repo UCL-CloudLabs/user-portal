@@ -7,6 +7,7 @@ from .database import Model
 from .extensions import db
 from .host_status import HostStatus
 from .roles import Roles
+from . import names
 
 
 class User(Model):
@@ -90,8 +91,15 @@ class SshKey(Model):
 class Host(Model):
     """Stores details of virtual hosts created by CloudLabs."""
     id = db.Column(db.Integer, primary_key=True)
+    # The canonical name of the host, as given by the user
+    base_name = db.Column(db.String(50), unique=True, index=True,
+                          nullable=False)
+    # The actual domain name, including anything added for randomisation
     dns_name = db.Column(db.String(50), unique=True, index=True,
                          nullable=False)
+    # TODO different max lenghts for base_name and dns_name?
+    # TODO also keep the final DNS used, depending on the provider chosen?
+    # (actually link() should be fine, but keeping comment for now for clarity)
     label = db.Column(db.String(50), nullable=False)
     description = db.Column(db.Text)
     admin_username = db.Column(db.String(50), nullable=False)
@@ -119,6 +127,8 @@ class Host(Model):
 
     def __init__(self, *args, **kwargs):
         """Define a default setup_script as well as the supplied fields."""
+        # Enrich the base name given in the form to add prefixes or randomness
+        kwargs['dns_name'] = names.create_host_name(kwargs['base_name'])
         if ('setup_script' not in kwargs and 'git_repo' in kwargs and
                 'port' in kwargs):
             kwargs['setup_script'] = self.default_setup_script(**kwargs)
@@ -134,6 +144,8 @@ class Host(Model):
         :param port: the port to expose, which should match that used by the
                      service defined in the Dockerfile
         """
+        all_args = kwargs.copy()
+        all_args['azure_url'] = names.azure_url(all_args['dns_name'])
         return '\n'.join([
             "sudo apt-get update",
             "sudo apt-get install docker.io -y",
@@ -141,20 +153,19 @@ class Host(Model):
             "cd repo",
             "sudo docker build -t web-app .",
             ("sudo docker run -d -e "
-             "AZURE_URL={dns_name}.ukwest.cloudapp.azure.com -p {port}:{port}"
-             " web-app")]).format(**kwargs)
+             "AZURE_URL={azure_url} -p {port}:{port} web-app")]
+            ).format(**all_args)
 
     @property
     def link(self):
         """The full URL to this host when deployed, for use in href attributes."""
         # return 'http://' + self.basic_url
-        return 'http://{}.ukwest.cloudapp.azure.com:{}'.format(
-            self.dns_name, self.port)
+        return 'http://{}:{}'.format(names.azure_url(self.dns_name), self.port)
 
     @property
     def basic_url(self):
         """This host's URL without scheme, suitable for user display."""
-        return self.dns_name + '.cloudlabs.rc.ucl.ac.uk'
+        return self.base_name + '.cloudlabs.rc.ucl.ac.uk'
 
     @property
     def auth_type(self):

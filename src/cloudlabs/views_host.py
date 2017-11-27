@@ -40,7 +40,7 @@ def add():
                                   for key in g.user.ssh_keys]
     if form.validate_on_submit():
         fields = {'user_id': g.user.id}
-        for field in ['label', 'dns_name', 'description', 'admin_username',
+        for field in ['label', 'base_name', 'description', 'admin_username',
                       'git_repo']:
             fields[field] = form[field].data.strip()
         for field in ['port']:

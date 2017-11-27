@@ -15,7 +15,7 @@ provider "azurerm" {
   client_secret   = "${var.azure_client_secret}"
   tenant_id       = "${var.azure_tenant_id}"
   # Don't upgrade to newer versions automatically
-  version = "~> 0.1"
+  version = "~> 0.3"
 }
 
 # create a resource group if it doesn't exist
@@ -118,9 +118,9 @@ resource "azurerm_virtual_machine" "vm" {
     os_profile {
         computer_name = "sample"
         admin_username = "anastasis"
-        
+
         admin_password = "Password!123"
-        
+
     }
 
     os_profile_linux_config {
@@ -146,7 +146,7 @@ resource "azurerm_virtual_machine" "vm" {
 
     provisioner "remote-exec" {
         inline = [
-          
+
               "sudo apt-get update",
               "sudo apt-get install docker.io -y",
               "git clone https://github.com/UCL-CloudLabs/docker-sample -b levine repo",

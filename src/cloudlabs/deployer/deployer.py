@@ -1,8 +1,6 @@
 import json
 import os
-import re
 import subprocess
-import uuid
 from flask import current_app
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
@@ -10,6 +8,7 @@ from python_terraform import Terraform
 from tempfile import TemporaryDirectory
 
 from ..host_status import HostStatus
+from ..names import resource_names
 
 
 class Deployer:
@@ -44,7 +43,7 @@ class Deployer:
         rendered_template = j2_env.get_template(
             'terraform.tf_template').render(
             host=host,
-            names=self.resource_names(host),
+            names=resource_names(host),
             private_key_path=current_app.config['PRIVATE_SSH_KEY_PATH'])
         # # except TemplateNotFound:
         #     print("Template terraform-main.tf_template not found in {}."
@@ -60,27 +59,6 @@ class Deployer:
         # except:
         #     # TODO: replace with logging and maybe raise?
         #     print("Error writing terraform's config file.")
-
-    def resource_names(self, host):
-        """Generate names for cloud resources for the given host.
-
-        A deployed host requires various resources alongside the bare VM, such
-        as networking, storage, containers, etc. Different providers have
-        different constraints on these names, so we don't want to hardcode this
-        within the Host class. Instead this method returns a dictionary with
-        suitable names based on a given host configuration, providing a hook to
-        abstract provider requirements.
-
-        The resulting dictionary is designed to be passed as the 'names'
-        parameter to the Terraform template in self._render.
-        """
-        base_name = 'ucl' + re.sub(r'[^a-zA-Z0-9]', '', host.dns_name)
-        return {
-            'resource_group': base_name + 'rg',
-            'dns_name': base_name,
-            'storage': uuid.uuid5(uuid.NAMESPACE_DNS, host.basic_url).hex[:24],
-            'vm': base_name + 'vm',
-        }
 
     def deploy(self, host):
         '''

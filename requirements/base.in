@@ -17,3 +17,6 @@ python-terraform
 
 # Task queue
 celery
+
+# Name randomisation
+haikunator
