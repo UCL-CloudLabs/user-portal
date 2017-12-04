@@ -26,7 +26,7 @@
         {%- if host.status in [HostStatus.deploying, HostStatus.error, HostStatus.destroying] -%}
           <a href="{{ url_for('host.view_log', id=host.id) }}">
         {%- endif -%}
-        {{ host.status.value }}
+        {{ get_status_azure(host).value }}
         {%- if host.status in [HostStatus.deploying, HostStatus.error, HostStatus.destroying] -%}
           </a>
         {%- endif -%}
