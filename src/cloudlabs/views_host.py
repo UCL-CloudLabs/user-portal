@@ -116,6 +116,9 @@ def control(id):
     host = Host.query.get_or_404(id)
     if host.user is not g.user:
         abort(404)
+    if action == 'stop':
+        stop(host)
+        return redirect(url_for('main.index'))
     return render_template('not_implemented.html', host=host,
                            thing='Running hosts')
 
@@ -158,3 +161,12 @@ def destroy(host):
             'cloudlabs.destroy',
             args=(host.id,))
     flash('Host "{}" destruction scheduled'.format(host.label), 'success')
+
+
+def stop(host):
+    """Signals Celery to stop a VM in the background."""
+    celery = create_celery(current_app)
+    celery.send_task(
+            'cloudlabs.stop',
+            args=(host.id,))
+    flash('Host "{}" stopping scheduled'.format(host.label), 'success')
