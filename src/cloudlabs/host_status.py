@@ -6,8 +6,10 @@ from azure.mgmt.compute import ComputeManagementClient
 from . import names
 from .secrets import Secrets
 
+
 class HostStatus(Enum):
     """Possible statuses for CloudLabs hosts."""
+
     defining = 'Defining'    # Not yet started to deploy
     deploying = 'Deploying'  # Deployment in progress
     starting = 'Starting'    # Machine is spinning up; service not live
@@ -60,7 +62,7 @@ def get_status_azure(host):
                 return HostStatus.running
             elif power_state == "deallocating" or power_state == "stopping":
                 return HostStatus.stopping
-        return HostStatus.error #  uknown status, return error
+        return HostStatus.error  # uknown status, return error
 
 
 def get_credentials():
