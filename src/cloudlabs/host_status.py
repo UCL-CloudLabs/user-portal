@@ -30,7 +30,6 @@ def get_status_azure(host):
     try:
         group_name = names.group_name(host)
         vm_name = names.vm_name(host)
-        print(group_name, vm_name)
         # The InstanceViewStatus object returned has a code attribute and a
         # slightly more human-readable display_status. The code seems to follow
         # a particular structure, so it's probably best to work with that.
@@ -39,7 +38,6 @@ def get_status_azure(host):
             for status
             in cmc.virtual_machines.instance_view(group_name, vm_name).statuses
         ]
-        print(statuses)
     except Exception as e:
         return HostStatus.error
     prov_state = get_provisioning_state_azure(statuses)
