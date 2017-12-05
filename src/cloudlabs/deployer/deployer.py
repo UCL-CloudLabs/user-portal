@@ -6,8 +6,9 @@ from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from .. import azure_tools
 from ..host_status import HostStatus
-from ..names import resource_names
+from ..names import resource_names, group_name, vm_name
 
 
 class Deployer:
@@ -151,3 +152,18 @@ class Deployer:
             self._record_result(host, HostStatus.defining)
         else:
             self._record_result(host, HostStatus.error, 'destroy', process.returncode)
+
+    def stop(self, host):
+        """Stop a host that is running, but do not remove it from the cloud.
+
+        :param host: a Host instance
+        """
+        # Get Azure connection
+        cmc = azure_tools.get_compute_manager()
+        # Stop the VM: the call to deallocate returns immediately, and then we
+        # have to execute the returned instruction and wait for it to complete.
+        # Note that we need to call deallocate and not power_off, since the
+        # latter only stops the machine but continues charging for it.
+        action = cmc.virtual_machines.deallocate(group_name(host), vm_name(host))
+        action.wait()
+        # TODO Record result?

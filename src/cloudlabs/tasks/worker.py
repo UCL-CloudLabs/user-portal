@@ -52,3 +52,22 @@ def destroy(host_id):
         host.update(status=HostStatus.error,
                     deploy_log=host.deploy_log +
                     '\n\nUnexpected error!\n' + traceback.format_exc(e))
+
+
+@celery.task(name='cloudlabs.stop')
+def stop(host_id):
+    """Stop the host with the specified ID."""
+    try:
+        host = Host.query.get(host_id)
+        if host is None:
+            return
+        deployer = Deployer(current_app.root_path)
+        deployer.stop(host)
+    # Note that this doesn't set an error status in the the database!
+    except SoftTimeLimitExceeded:
+        host.update(deploy_log=host.deploy_log +
+                    '\n\nTime limit exceeded - stopping failed!\n')
+    except Exception as e:
+        host.update(deploy_log=host.deploy_log +
+                    '\n\nUnexpected error when stopping!\n' +
+                    traceback.format_exc(e))
