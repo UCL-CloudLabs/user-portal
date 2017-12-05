@@ -48,13 +48,15 @@ def get_status_azure(host):
             if not status.startswith("PowerState"):
                 continue
             power_state = _remove_prefix(status, "PowerState/")
-            if power_state == "deallocated" or power_state == "stopped":
+            if power_state == "deallocated":
                 return HostStatus.stopped
             elif power_state == "starting":
                 return HostStatus.starting
             elif power_state == "running":
                 return HostStatus.running
-            elif power_state == "deallocating" or power_state == "stopping":
+            elif (power_state == "deallocating" or power_state == "stopping"
+                  or power_state == "stopped"):
+                # "stopped" still incurs charging; "deallocated" means truly off
                 return HostStatus.stopping
         return HostStatus.error  # uknown status, return error
 
