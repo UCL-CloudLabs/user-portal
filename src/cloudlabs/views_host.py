@@ -119,6 +119,9 @@ def control(id):
     if action == 'stop':
         stop(host)
         return redirect(url_for('main.index'))
+    elif action == 'restart':
+        restart(host)
+        return redirect(url_for('main.index'))
     return render_template('not_implemented.html', host=host,
                            thing='Running hosts')
 
@@ -170,3 +173,12 @@ def stop(host):
             'cloudlabs.stop',
             args=(host.id,))
     flash('Host "{}" stopping scheduled'.format(host.label), 'success')
+
+
+def restart(host):
+    """Signals Celery to start or restart a VM in the background."""
+    celery = create_celery(current_app)
+    celery.send_task(
+            'cloudlabs.restart',
+            args=(host.id,))
+    flash('Host "{}" restart scheduled'.format(host.label), 'success')

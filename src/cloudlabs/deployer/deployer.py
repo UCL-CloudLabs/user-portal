@@ -167,3 +167,15 @@ class Deployer:
         action = cmc.virtual_machines.deallocate(group_name(host), vm_name(host))
         action.wait()
         # TODO Record result?
+
+    def restart(self, host):
+        """Start a stopped host.
+
+        :param host: a Host instance
+        """
+        # TODO Restart a host that is running
+        # Get Azure connection
+        cmc = azure_tools.get_compute_manager()
+        action = cmc.virtual_machines.start(group_name(host), vm_name(host))
+        action.wait()
+        # TODO Record result?

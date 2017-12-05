@@ -71,3 +71,22 @@ def stop(host_id):
         host.update(deploy_log=host.deploy_log +
                     '\n\nUnexpected error when stopping!\n' +
                     traceback.format_exc(e))
+
+
+@celery.task(name='cloudlabs.restart')
+def restart(host_id):
+    """Restart the host with the specified ID."""
+    try:
+        host = Host.query.get(host_id)
+        if host is None:
+            return
+        deployer = Deployer(current_app.root_path)
+        deployer.restart(host)
+    # Note that this doesn't set an error status in the the database!
+    except SoftTimeLimitExceeded:
+        host.update(deploy_log=host.deploy_log +
+                    '\n\nTime limit exceeded - restarting failed!\n')
+    except Exception as e:
+        host.update(deploy_log=host.deploy_log +
+                    '\n\nUnexpected error when restarting!\n' +
+                    traceback.format_exc(e))
