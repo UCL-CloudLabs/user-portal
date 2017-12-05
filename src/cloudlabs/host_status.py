@@ -1,10 +1,7 @@
 from enum import Enum
 
-from azure.common.credentials import ServicePrincipalCredentials
-from azure.mgmt.compute import ComputeManagementClient
-
+from . import azure_tools
 from . import names
-from .secrets import Secrets
 
 
 class HostStatus(Enum):
@@ -25,8 +22,7 @@ def get_status_azure(host):
     # Getting the status is not obvious at first glance. This has some info:
     # https://docs.microsoft.com/en-us/rest/api/compute/virtualmachines/virtualmachines-state
     # TODO Avoid creating this every time (eg by passing cmc as an argument)
-    credentials, subscription_id = get_credentials()
-    cmc = ComputeManagementClient(credentials, subscription_id)
+    cmc = azure_tools.get_compute_manager()
     try:
         group_name = names.group_name(host)
         vm_name = names.vm_name(host)
@@ -61,27 +57,6 @@ def get_status_azure(host):
             elif power_state == "deallocating" or power_state == "stopping":
                 return HostStatus.stopping
         return HostStatus.error  # uknown status, return error
-
-
-def get_credentials():
-    """Get the necessary credentials for creating the ComputeManagementClient.
-
-    Also see: https://github.com/Azure-Samples/virtual-machines-python-manage
-    """
-    # TODO are secrets better accessible in a different way?
-    # subscription_id = os.environ['TF_VAR_azure_subscription_id']
-    # credentials = ServicePrincipalCredentials(
-    #     client_id=os.environ['TF_VAR_azure_client_id'],
-    #     secret=os.environ['TF_var_azure_client_secret'],
-    #     tenant=os.environ['TF_var_azure_tenant_id']
-    # )
-    subscription_id = Secrets.TF_VAR_azure_subscription_id
-    credentials = ServicePrincipalCredentials(
-        client_id=Secrets.TF_VAR_azure_client_id,
-        secret=Secrets.TF_VAR_azure_client_secret,
-        tenant=Secrets.TF_VAR_azure_tenant_id
-    )
-    return credentials, subscription_id
 
 
 def get_provisioning_state_azure(statuses):
