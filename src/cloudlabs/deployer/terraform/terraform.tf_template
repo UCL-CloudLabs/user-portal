@@ -15,12 +15,12 @@ provider "azurerm" {
   client_secret   = "${var.azure_client_secret}"
   tenant_id       = "${var.azure_tenant_id}"
   # Don't upgrade to newer versions automatically
-  version = "~> 0.1"
+  version = "~> 0.3"
 }
 
 # create a resource group if it doesn't exist
 resource "azurerm_resource_group" "rg" {
-    name = "{{host.dns_name}}rg"
+    name = "{{names.resource_group}}"
     location = "ukwest"
 }
 
@@ -47,7 +47,7 @@ resource "azurerm_public_ip" "ip" {
     location = "ukwest"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     public_ip_address_allocation = "dynamic"
-    domain_name_label = "{{host.dns_name}}"
+    domain_name_label = "{{names.dns_name}}"
 
     tags {
         environment = "staging"
@@ -71,10 +71,11 @@ resource "azurerm_network_interface" "ni" {
 
 # create storage account
 resource "azurerm_storage_account" "storage" {
-    name = "{{host.dns_name}}sa"
+    name = "{{names.storage}}"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     location = "ukwest"
-    account_type = "Standard_LRS"
+    account_replication_type = "LRS"
+    account_tier = "Standard"
 
     tags {
         environment = "staging"
@@ -94,7 +95,7 @@ resource "azurerm_storage_container" "storagecont" {
 
 # create virtual machine
 resource "azurerm_virtual_machine" "vm" {
-    name = "{{host.dns_name}}vm"
+    name = "{{names.vm}}"
     location = "ukwest"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     network_interface_ids = ["${azurerm_network_interface.ni.id}"]
@@ -141,7 +142,7 @@ resource "azurerm_virtual_machine" "vm" {
     }
 
     connection {
-        host = "{{host.dns_name}}.ukwest.cloudapp.azure.com"
+        host = "{{names.dns_name}}.ukwest.cloudapp.azure.com"
         user = "{{host.admin_username}}"
         type = "ssh"
         private_key = "${file("{{private_key_path}}")}"
@@ -151,9 +152,11 @@ resource "azurerm_virtual_machine" "vm" {
 
     provisioner "remote-exec" {
         inline = [
-          {% for line in host.setup_script.split('\n') %}
-          "{{ line }}",
-          {% endfor %}
+          {% for line in host.setup_script.splitlines() %}
+            {% if line.strip() %}
+              "{{ line|trim|replace('"', '\\"') }}",
+            {% endif %}
+          {%- endfor %}
         ]
     }
 

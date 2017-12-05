@@ -14,3 +14,6 @@ Flask-Migrate
 
 # Task queue
 celery
+
+# Name randomisation
+haikunator

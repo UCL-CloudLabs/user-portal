@@ -77,7 +77,7 @@ class TestDeployer:
         fields = {
             'user_id': 1,
             'label': self._haikunate(),
-            'dns_name': dnsname,
+            'base_name': dnsname,
             'description': self._haikunate(),
             'admin_username': self._haikunate(),
             'terraform_state': self._haikunate(),
@@ -98,15 +98,15 @@ class TestDeployer:
         assert deployer.template_path == Path(
             'cloudlabs/deployer/terraform').absolute()
 
-    def test_deployer(self, app, resource_name, deployer, dnsname, host):
+    def test_deployer(self, app, resource_name, deployer, host):
         '''
         Create a test host with made up parameters, deploy on azure and ping.
         '''
         deployer.deploy(host)
         # Wait for 10 secs so we make sure app has had the time to be deployed.
         sleep(10)
-        # Sample URL is exposing the webapp on port 5000
-        url = "http://{}.ukwest.cloudapp.azure.com:5006".format(dnsname)
+        # URL and port are available through the host's link property
+        url = host.link
         # Check website is live
         response = requests.get(url)
         assert 200 == response.status_code

@@ -7,6 +7,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from ..host_status import HostStatus
+from ..names import resource_names
 
 
 class Deployer:
@@ -37,9 +38,10 @@ class Deployer:
         # try:
         j2_env = Environment(loader=FileSystemLoader(str(self.template_path)))
         rendered_template = j2_env.get_template(
-                'terraform.tf_template').render(
-                host=host,
-                private_key_path=current_app.config['PRIVATE_SSH_KEY_PATH'])
+            'terraform.tf_template').render(
+            host=host,
+            names=resource_names(host),
+            private_key_path=current_app.config['PRIVATE_SSH_KEY_PATH'])
         # # except TemplateNotFound:
         #     print("Template terraform-main.tf_template not found in {}."
         #               .format(template_path))
