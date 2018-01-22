@@ -15,6 +15,7 @@ class HostStatus(Enum):
     stopping = 'Stopping'    # Machine is being stopped
     destroying = 'Destroying'
     error = 'Failed to deploy'
+    unknown = 'Not found'    # Machine not found on the cloud
 
 
 def get_status_azure(host):
@@ -35,7 +36,7 @@ def get_status_azure(host):
             in cmc.virtual_machines.instance_view(group_name, vm_name).statuses
         ]
     except Exception as e:
-        return HostStatus.error
+        return HostStatus.unknown
     prov_state = get_provisioning_state_azure(statuses)
     if prov_state == "deleting":
         return HostStatus.destroying
