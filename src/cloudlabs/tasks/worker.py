@@ -7,7 +7,7 @@ from flask import current_app
 from . import create_celery
 from ..app import create_app
 from ..deployer.deployer import Deployer
-from ..host_status import HostStatus
+from ..host_status import HostStatus, get_status_azure
 from ..models import Host
 from ..secrets import apply_secrets
 
@@ -90,3 +90,16 @@ def restart(host_id):
         host.update(deploy_log=host.deploy_log +
                     '\n\nUnexpected error when restarting!\n' +
                     traceback.format_exc(e))
+
+
+@celery.on_after_configure.connect
+def setup_periodic_tasks(sender, **kwargs):
+    sender.add_periodic_task(10.0, refresh_status.s(),
+                             name='Refresh the DB')
+
+
+@celery.task(name='cloudlabs.refresh_status')
+def refresh_status():
+    for host in Host.query.all():
+        status = get_status_azure(host)
+        host.update(status=status)
