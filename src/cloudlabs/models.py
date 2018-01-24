@@ -105,6 +105,7 @@ class Host(Model):
     admin_username = db.Column(db.String(50), nullable=False)
     admin_password = db.Column(db.String(255))
     terraform_state = db.Column(db.Text)  # Could use JSON type???
+    template = db.Column(db.Text)  # the Terraform template used for deployment
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     admin_ssh_key_id = db.Column(db.Integer, db.ForeignKey('ssh_key.id'),

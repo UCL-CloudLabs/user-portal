@@ -50,6 +50,8 @@ class Deployer:
         #     # TODO raise?
 
         print(rendered_template)
+        # Also store the instantiated template in the DB
+        host.update(template=rendered_template)
 
         # try:
         with open(str(Path(self.tempdir.name, "terraform.tf")), "w") as f:
@@ -141,7 +143,12 @@ class Deployer:
         with open(self.tfstate_path, 'w') as tf_state:
             tf_state.write(host.terraform_state)
         # We need to write a config file and initialise Terraform (TODO: fix this?)
-        self._render(host)
+        # self._render(host)
+        # this can be retrieved from the DB instead of re-rendered
+        rendered_template = host.template
+        with open(str(Path(self.tempdir.name, "terraform.tf")), "w") as f:
+                f.write(rendered_template)
+
         process = self._run_cmd('init', host)
         if process.returncode != 0:
             self._record_result(host, HostStatus.error, 'init', process.returncode)
