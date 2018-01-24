@@ -100,6 +100,13 @@ def setup_periodic_tasks(sender, **kwargs):
 
 @celery.task(name='cloudlabs.refresh_status')
 def refresh_status():
+    # TODO better to use query.filter(Host.status not in [...])? (if possible)
     for host in Host.query.all():
-        status = get_status_azure(host)
-        host.update(status=status)
+        # If we believe the host is still being defined/deployed, ignore the
+        # live status. This is because, as far as Azure is concerned, the VM
+        # may be running or nonexistent, but we don't want to display that to
+        # the owner just yet.
+        # TODO maybe exclude error state too? (potentially set during deployment)
+        if host.status not in [HostStatus.defining, HostStatus.deploying]:
+            status = get_status_azure(host)
+            host.update(status=status)
