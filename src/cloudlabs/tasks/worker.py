@@ -1,4 +1,4 @@
-
+import signal
 import traceback
 
 from celery.exceptions import SoftTimeLimitExceeded
@@ -16,8 +16,17 @@ apply_secrets()
 celery = create_celery(create_app())
 
 
+def catch_signal(signum, frame):
+    # TODO Do we actually need this? The intention was to catch the termination
+    # signal from revoke so that the worker process doesn't die. It might be
+    # that this is redundant, though.
+    print("Caught signal")
+    raise RuntimeError
+
+
 @celery.task(name='cloudlabs.deploy')
 def deploy(host_id):
+    signal.signal(signal.SIGTERM, catch_signal)
     try:
         host = Host.query.get(host_id)
         if host is None:
@@ -29,6 +38,8 @@ def deploy(host_id):
         host.update(status=HostStatus.error,
                     deploy_log=host.deploy_log +
                     '\n\nTime limit exceeded - deployment terminated!\n')
+    except RuntimeError:  # if terminated -- to prevent worker being killed
+        pass
     except Exception as e:
         host.update(status=HostStatus.error,
                     deploy_log=host.deploy_log +
@@ -36,14 +47,18 @@ def deploy(host_id):
 
 
 @celery.task(name='cloudlabs.destroy')
-def destroy(host_id):
+def destroy(host_id, hard):
+    print("Destroying {} from task {}".format(host_id, deploy.request.id))
     try:
         host = Host.query.get(host_id)
         if host is None or host.status is HostStatus.defining:
             # Host was deleted already
             return
         deployer = Deployer(current_app.root_path)
-        deployer.destroy(host)
+        if hard:
+            deployer.hard_delete(host)
+        else:
+            deployer.destroy(host)
     except SoftTimeLimitExceeded:
         host.update(status=HostStatus.error,
                     deploy_log=host.deploy_log +

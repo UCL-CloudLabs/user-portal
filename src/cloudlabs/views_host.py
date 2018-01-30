@@ -10,6 +10,8 @@ from flask import (
     request,
     url_for,
 )
+
+from .deployer import Deployer
 from .forms.add_host import AddHostForm
 from .forms.customise_setup import CustomiseSetupForm
 from .host_status import HostStatus
@@ -149,9 +151,11 @@ def deploy(host):
     """Signals Celery to launch a VM in the background."""
     host.update(status=HostStatus.deploying)
     celery = create_celery(current_app)
-    celery.send_task(
+    result = celery.send_task(
         'cloudlabs.deploy',
         args=(host.id,))
+    # Record the new deployment so we can keep track of it
+    current_app.current_deployments[host.id] = result.id
     flash('Host "{}" deployment scheduled'.format(host.label), 'success')
 
 
@@ -160,9 +164,21 @@ def destroy(host):
     if host.status is not HostStatus.destroying:
         host.update(status=HostStatus.destroying)
         celery = create_celery(current_app)
+        # First check if the host is currently being deployed, in which case we
+        # stop the corresponding task (if already running), and start a "hard"
+        # deletion process (interrupting the deployment).
+        if host.id in current_app.current_deployments:
+            hard_delete = True
+            print("Deployment in progress, will revoke task!")  # DEBUG
+            task_id = current_app.current_deployments[host.id]
+            print("Revoking " + task_id)  # DEBUG
+            celery.control.revoke(task_id, terminate=True)
+        else:
+            hard_delete = False
+        print("Will send destroy task (hard = {})".format(hard_delete))
         celery.send_task(
             'cloudlabs.destroy',
-            args=(host.id,))
+            args=(host.id, hard_delete))
     flash('Host "{}" destruction scheduled'.format(host.label), 'success')
 
 

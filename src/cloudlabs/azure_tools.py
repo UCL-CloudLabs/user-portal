@@ -2,6 +2,7 @@
 
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.compute import ComputeManagementClient
+from azure.mgmt.resource import ResourceManagementClient
 
 from .secrets import Secrets
 
@@ -33,3 +34,11 @@ def get_compute_manager(credentials=None, subscription_id=None):
         credentials, subscription_id = get_credentials()
     cmc = ComputeManagementClient(credentials, subscription_id)
     return cmc
+
+
+def get_resource_manager(credentials=None, subscription_id=None):
+    """Get an instance of an Azure ResourceManagementClient."""
+    if not (credentials and subscription_id):
+        credentials, subscription_id = get_credentials()
+    rmc = ResourceManagementClient(credentials, subscription_id)
+    return rmc

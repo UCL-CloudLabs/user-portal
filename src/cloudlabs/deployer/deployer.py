@@ -179,3 +179,15 @@ class Deployer:
         action = cmc.virtual_machines.start(group_name(host), vm_name(host))
         action.wait()
         # TODO Record result?
+
+    def hard_delete(self, host):
+        """Delete a host through the Azure SDK.
+
+        This should be used only as a last resort, when the machine is still
+        being deployed and there is no Terraform state file available.
+
+        :param host: a Host instance"""
+        rmc = azure_tools.get_resource_manager()
+        action = rmc.resource_groups.delete(group_name(host))
+        action.wait()
+        self._record_result(host, HostStatus.defining)
