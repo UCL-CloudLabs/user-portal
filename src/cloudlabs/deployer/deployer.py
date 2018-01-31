@@ -143,11 +143,13 @@ class Deployer:
         with open(self.tfstate_path, 'w') as tf_state:
             tf_state.write(host.terraform_state)
         # We need to write a config file and initialise Terraform (TODO: fix this?)
-        # self._render(host)
-        # this can be retrieved from the DB instead of re-rendered
+        # this can be retrieved from the DB
         rendered_template = host.template
-        with open(str(Path(self.tempdir.name, "terraform.tf")), "w") as f:
-                f.write(rendered_template)
+        if rendered_template:
+            with open(str(Path(self.tempdir.name, "terraform.tf")), "w") as f:
+                    f.write(rendered_template)
+        else:  # if template not in DB (for whatever reason?), render it again
+            self.render(host)
 
         process = self._run_cmd('init', host)
         if process.returncode != 0:
