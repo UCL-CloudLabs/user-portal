@@ -33,7 +33,6 @@ resource "azurerm_virtual_network" "vnet" {
     subnet {
         name = "tfsub"
         address_prefix = "10.0.2.0/24"
-
     }
 }
 
