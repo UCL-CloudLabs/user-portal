@@ -121,6 +121,9 @@ class Host(Model):
                        server_default=HostStatus.defining.name)
     deploy_log = db.Column(db.Text, server_default='')
 
+    # The task that will deploy this host (unless completed)
+    task = db.Column(db.String(50), nullable=True)
+
     def __repr__(self):
         return '<Host: dns={}, user={}, label={}>'.format(
             self.dns_name, self.user, self.label)

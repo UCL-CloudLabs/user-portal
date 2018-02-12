@@ -155,7 +155,7 @@ def deploy(host):
         'cloudlabs.deploy',
         args=(host.id,))
     # Record the new deployment so we can keep track of it
-    current_app.current_deployments[host.id] = result.id
+    host.update(task=result.id)
     flash('Host "{}" deployment scheduled'.format(host.label), 'success')
 
 
@@ -167,12 +167,11 @@ def destroy(host):
         # First check if the host is currently being deployed, in which case we
         # stop the corresponding task (if already running), and start a "hard"
         # deletion process (interrupting the deployment).
-        if host.id in current_app.current_deployments:
+        if host.task:
             hard_delete = True
             print("Deployment in progress, will revoke task!")  # DEBUG
-            task_id = current_app.current_deployments[host.id]
-            print("Revoking " + task_id)  # DEBUG
-            celery.control.revoke(task_id, terminate=True)
+            print("Revoking " + host.task)  # DEBUG
+            celery.control.revoke(host.task, terminate=True)
         else:
             hard_delete = False
         print("Will send destroy task (hard = {})".format(hard_delete))

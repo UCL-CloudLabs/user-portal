@@ -191,3 +191,5 @@ class Deployer:
         action = rmc.resource_groups.delete(group_name(host))
         action.wait()
         self._record_result(host, HostStatus.defining)
+        # remove the deploying task's ID from the database
+        host.update(task=None)
