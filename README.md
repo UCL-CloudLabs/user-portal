@@ -83,13 +83,22 @@ cd src
 PATH=/usr/local/sbin:$PATH
 export RABBITMQ_NODE_IP_ADDRESS=127.0.0.1
 rabbitmq-server -detached
-celery worker -A cloudlabs.tasks.worker.celery --loglevel=info
+celery beat -A cloudlabs.tasks.worker.celery --loglevel=info
+celery worker -A cloudlabs.tasks.worker.celery --loglevel=info --statedb=worker_state
 ```
 
 You can stop the worker using Control-C, and then the broker with
 ```bash
 rabbitmqctl stop
 ```
+
+The `celery beat` command sets up a periodic task, which will be received by
+the workers as needed. It exists independently of the workers and must be stopped
+separately (e.g. with Control-C after brought to the foreground).
+
+The `--statedb` argument is required to revoke tasks permanently; without it, it
+is possible that deployments which were cancelled while under way will be
+attempted again if the worker is restarted.
 
 ### Run the webapp
 
