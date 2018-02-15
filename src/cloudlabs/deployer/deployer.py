@@ -6,9 +6,9 @@ from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from .. import azure_tools
+from ..azure_tools import AzureTools
 from ..host_status import HostStatus
-from ..names import resource_names, group_name, vm_name
+from ..names import resource_names
 
 
 class Deployer:
@@ -29,6 +29,7 @@ class Deployer:
         self.template_path = Path(app_path, "deployer", "terraform")
         self.tempdir = TemporaryDirectory()
         self.tfstate_path = os.path.join(self.tempdir.name, 'terraform.tfstate')
+        self.tools = AzureTools()
 
     def _render(self, host):
         '''
@@ -167,26 +168,23 @@ class Deployer:
 
         :param host: a Host instance
         """
-        # Get Azure connection
-        cmc = azure_tools.get_compute_manager()
-        # Stop the VM: the call to deallocate returns immediately, and then we
-        # have to execute the returned instruction and wait for it to complete.
-        # Note that we need to call deallocate and not power_off, since the
-        # latter only stops the machine but continues charging for it.
-        action = cmc.virtual_machines.deallocate(group_name(host), vm_name(host))
-        action.wait()
+        self.azure_tools.stop_VM(host)
         # TODO Record result?
 
-    def restart(self, host):
-        """Start a stopped host.
+    def start(self, host):
+        """Start a (stopped or running) host.
 
         :param host: a Host instance
         """
-        # TODO Restart a host that is running
-        # Get Azure connection
-        cmc = azure_tools.get_compute_manager()
-        action = cmc.virtual_machines.start(group_name(host), vm_name(host))
-        action.wait()
+        self.tools.start_VM(host)
+        # TODO Record result?
+
+    def restart(self, host):
+        """Restart a running host.
+
+        :param host: a Host instance
+        """
+        self.tools.restart_VM(host)
         # TODO Record result?
 
     def hard_delete(self, host):
@@ -196,9 +194,7 @@ class Deployer:
         being deployed and there is no Terraform state file available.
 
         :param host: a Host instance"""
-        rmc = azure_tools.get_resource_manager()
-        action = rmc.resource_groups.delete(group_name(host))
-        action.wait()
+        self.tools.delete_VM(host)
         self._record_result(host, HostStatus.defining)
         # remove the deploying task's ID from the database
         host.update(task=None)
