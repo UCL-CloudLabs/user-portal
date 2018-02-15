@@ -19,9 +19,3 @@ def setup(app):
         """Provide the HostStatus enum to all templates."""
         from .host_status import HostStatus
         return {'HostStatus': HostStatus}
-
-    @app.context_processor
-    def inject_get_status():
-        """Provide the get_status_azure to all templates."""
-        from .host_status import get_status_azure
-        return {'get_status_azure': get_status_azure}

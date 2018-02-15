@@ -12,13 +12,6 @@ def get_credentials():
 
     Also see: https://github.com/Azure-Samples/virtual-machines-python-manage
     """
-    # TODO are secrets better accessible in a different way?
-    # subscription_id = os.environ['TF_VAR_azure_subscription_id']
-    # credentials = ServicePrincipalCredentials(
-    #     client_id=os.environ['TF_VAR_azure_client_id'],
-    #     secret=os.environ['TF_var_azure_client_secret'],
-    #     tenant=os.environ['TF_var_azure_tenant_id']
-    # )
     subscription_id = Secrets.TF_VAR_azure_subscription_id
     credentials = ServicePrincipalCredentials(
         client_id=Secrets.TF_VAR_azure_client_id,

@@ -20,7 +20,7 @@ def catch_signal(signum, frame):
     # TODO Do we actually need this? The intention was to catch the termination
     # signal from revoke so that the worker process doesn't die. It might be
     # that this is redundant, though.
-    print("Caught signal")
+    # print("Caught signal")   # DEBUG
     raise RuntimeError
 
 
@@ -48,7 +48,7 @@ def deploy(host_id):
 
 @celery.task(name='cloudlabs.destroy')
 def destroy(host_id, hard):
-    print("Destroying {} from task {}".format(host_id, deploy.request.id))
+    # print("Destroying {} from task {}".format(host_id, deploy.request.id))  # DEBUG
     try:
         host = Host.query.get(host_id)
         if host is None or host.status is HostStatus.defining:
@@ -107,7 +107,7 @@ def restart(host_id):
                     traceback.format_exc(e))
     finally:
         # Regardless of how the task ends, mark the deployment as finished
-        print("Unsetting task ID")
+        # print("Unsetting task ID")  # DEBUG
         host.update(task=None)
 
 

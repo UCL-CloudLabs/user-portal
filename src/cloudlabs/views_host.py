@@ -11,7 +11,6 @@ from flask import (
     url_for,
 )
 
-from .deployer import Deployer
 from .forms.add_host import AddHostForm
 from .forms.customise_setup import CustomiseSetupForm
 from .host_status import HostStatus

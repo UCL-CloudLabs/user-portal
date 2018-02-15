@@ -21,7 +21,6 @@ def create_app(config_name=None):
         import os
         config_name = os.getenv('APP_SETTINGS', 'cloudlabs.config.Config')
     app = Flask(__name__)
-    app.current_deployments = {}
     app.config.from_object(config_name)
     db.init_app(app)
     migrate.init_app(app, db)
