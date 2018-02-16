@@ -93,6 +93,25 @@ def stop(host_id):
                     traceback.format_exc(e))
 
 
+@celery.task(name='cloudlabs.start')
+def start(host_id):
+    """Start the host with the specified ID."""
+    try:
+        host = Host.query.get(host_id)
+        if host is None:
+            return
+        deployer = Deployer(current_app.root_path)
+        deployer.start(host)
+    # Note that this doesn't set an error status in the the database!
+    except SoftTimeLimitExceeded:
+        host.update(deploy_log=host.deploy_log +
+                    '\n\nTime limit exceeded - starting failed!\n')
+    except Exception as e:
+        host.update(deploy_log=host.deploy_log +
+                    '\n\nUnexpected error when restarting!\n' +
+                    traceback.format_exc(e))
+
+
 @celery.task(name='cloudlabs.restart')
 def restart(host_id):
     """Restart the host with the specified ID."""
