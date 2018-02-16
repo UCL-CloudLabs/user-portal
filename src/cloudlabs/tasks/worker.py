@@ -45,6 +45,10 @@ def deploy(host_id):
         host.update(status=HostStatus.error,
                     deploy_log=host.deploy_log +
                     '\n\nUnexpected error!\n' + traceback.format_exc(e))
+    finally:
+        # Regardless of how the task ends, mark the deployment as finished
+        # print("Unsetting task ID")  # DEBUG
+        host.update(task=None)
 
 
 @celery.task(name='cloudlabs.destroy')
@@ -106,10 +110,6 @@ def restart(host_id):
         host.update(deploy_log=host.deploy_log +
                     '\n\nUnexpected error when restarting!\n' +
                     traceback.format_exc(e))
-    finally:
-        # Regardless of how the task ends, mark the deployment as finished
-        # print("Unsetting task ID")  # DEBUG
-        host.update(task=None)
 
 
 @celery.on_after_configure.connect
