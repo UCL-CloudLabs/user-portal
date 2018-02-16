@@ -168,7 +168,7 @@ class Deployer:
 
         :param host: a Host instance
         """
-        self.azure_tools.stop_VM(host)
+        self.tools.stop_VM(host)
         # TODO Record result?
 
     def start(self, host):

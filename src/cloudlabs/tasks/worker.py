@@ -6,8 +6,9 @@ from flask import current_app
 
 from . import create_celery
 from ..app import create_app
+from ..azure_tools import AzureTools
 from ..deployer.deployer import Deployer
-from ..host_status import HostStatus, get_status_azure
+from ..host_status import HostStatus
 from ..models import Host
 from ..secrets import apply_secrets
 
@@ -119,6 +120,7 @@ def setup_periodic_tasks(sender, **kwargs):
 
 @celery.task(name='cloudlabs.refresh_status')
 def refresh_status():
+    tools = AzureTools()
     # TODO better to use query.filter(Host.status not in [...])? (if possible)
     for host in Host.query.all():
         # If we believe the host is still being defined/deployed, ignore the
@@ -127,5 +129,5 @@ def refresh_status():
         # the owner just yet.
         # TODO maybe exclude error state too? (potentially set during deployment)
         if host.status not in [HostStatus.defining, HostStatus.deploying]:
-            status = get_status_azure(host)
+            status = tools.get_status(host)
             host.update(status=status)
