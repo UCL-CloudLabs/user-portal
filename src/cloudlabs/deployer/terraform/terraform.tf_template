@@ -15,7 +15,7 @@ provider "azurerm" {
   client_secret   = "${var.azure_client_secret}"
   tenant_id       = "${var.azure_tenant_id}"
   # Don't upgrade to newer versions automatically
-  version = "~> 0.3"
+  version = "~> 1.1"
 }
 
 # create a resource group if it doesn't exist
@@ -30,6 +30,10 @@ resource "azurerm_virtual_network" "vnet" {
     address_space = ["10.0.0.0/16"]
     location = "ukwest"
     resource_group_name = "${azurerm_resource_group.rg.name}"
+    subnet {
+        name = "tfsub"
+        address_prefix = "10.0.2.0/24"
+    }
 }
 
 # create subnet

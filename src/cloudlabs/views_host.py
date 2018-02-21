@@ -10,6 +10,7 @@ from flask import (
     request,
     url_for,
 )
+
 from .forms.add_host import AddHostForm
 from .forms.customise_setup import CustomiseSetupForm
 from .host_status import HostStatus
@@ -116,6 +117,15 @@ def control(id):
     host = Host.query.get_or_404(id)
     if host.user is not g.user:
         abort(404)
+    if action == 'stop':
+        stop(host)
+        return redirect(url_for('main.index'))
+    elif action == 'start':
+        start(host)
+        return redirect(url_for('main.index'))
+    elif action == 'restart':
+        restart(host)
+        return redirect(url_for('main.index'))
     return render_template('not_implemented.html', host=host,
                            thing='Running hosts')
 
@@ -143,9 +153,11 @@ def deploy(host):
     """Signals Celery to launch a VM in the background."""
     host.update(status=HostStatus.deploying)
     celery = create_celery(current_app)
-    celery.send_task(
+    result = celery.send_task(
         'cloudlabs.deploy',
         args=(host.id,))
+    # Record the new deployment so we can keep track of it
+    host.update(task=result.id)
     flash('Host "{}" deployment scheduled'.format(host.label), 'success')
 
 
@@ -154,7 +166,45 @@ def destroy(host):
     if host.status is not HostStatus.destroying:
         host.update(status=HostStatus.destroying)
         celery = create_celery(current_app)
+        # First check if the host is currently being deployed, in which case we
+        # stop the corresponding task (if already running), and start a "hard"
+        # deletion process (interrupting the deployment).
+        if host.task:
+            hard_delete = True
+            print("Deployment in progress, will revoke task!")  # DEBUG
+            print("Revoking " + host.task)  # DEBUG
+            celery.control.revoke(host.task, terminate=True)
+        else:
+            hard_delete = False
+        print("Will send destroy task (hard = {})".format(hard_delete))
         celery.send_task(
             'cloudlabs.destroy',
-            args=(host.id,))
+            args=(host.id, hard_delete))
     flash('Host "{}" destruction scheduled'.format(host.label), 'success')
+
+
+def stop(host):
+    """Signals Celery to stop a VM in the background."""
+    celery = create_celery(current_app)
+    celery.send_task(
+            'cloudlabs.stop',
+            args=(host.id,))
+    flash('Host "{}" stopping scheduled'.format(host.label), 'success')
+
+
+def start(host):
+    """Signals Celery to start a VM in the background."""
+    celery = create_celery(current_app)
+    celery.send_task(
+            'cloudlabs.start',
+            args=(host.id,))
+    flash('Host "{}" start scheduled'.format(host.label), 'success')
+
+
+def restart(host):
+    """Signals Celery to restart a VM in the background."""
+    celery = create_celery(current_app)
+    celery.send_task(
+            'cloudlabs.restart',
+            args=(host.id,))
+    flash('Host "{}" restart scheduled'.format(host.label), 'success')

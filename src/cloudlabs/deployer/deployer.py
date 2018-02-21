@@ -6,6 +6,7 @@ from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from ..azure_tools import AzureTools
 from ..host_status import HostStatus
 from ..names import resource_names
 
@@ -28,6 +29,7 @@ class Deployer:
         self.template_path = Path(app_path, "deployer", "terraform")
         self.tempdir = TemporaryDirectory()
         self.tfstate_path = os.path.join(self.tempdir.name, 'terraform.tfstate')
+        self.tools = AzureTools()
 
     def _render(self, host):
         '''
@@ -49,6 +51,8 @@ class Deployer:
         #     # TODO raise?
 
         print(rendered_template)
+        # Also store the instantiated template in the DB
+        host.update(template=rendered_template)
 
         # try:
         with open(str(Path(self.tempdir.name, "terraform.tf")), "w") as f:
@@ -140,7 +144,14 @@ class Deployer:
         with open(self.tfstate_path, 'w') as tf_state:
             tf_state.write(host.terraform_state)
         # We need to write a config file and initialise Terraform (TODO: fix this?)
-        self._render(host)
+        # this can be retrieved from the DB
+        rendered_template = host.template
+        if rendered_template:
+            with open(str(Path(self.tempdir.name, "terraform.tf")), "w") as f:
+                    f.write(rendered_template)
+        else:  # if template not in DB (for whatever reason?), render it again
+            self.render(host)
+
         process = self._run_cmd('init', host)
         if process.returncode != 0:
             self._record_result(host, HostStatus.error, 'init', process.returncode)
@@ -151,3 +162,39 @@ class Deployer:
             self._record_result(host, HostStatus.defining)
         else:
             self._record_result(host, HostStatus.error, 'destroy', process.returncode)
+
+    def stop(self, host):
+        """Stop a host that is running, but do not remove it from the cloud.
+
+        :param host: a Host instance
+        """
+        self.tools.stop_VM(host)
+        # TODO Record result?
+
+    def start(self, host):
+        """Start a (stopped or running) host.
+
+        :param host: a Host instance
+        """
+        self.tools.start_VM(host)
+        # TODO Record result?
+
+    def restart(self, host):
+        """Restart a running host.
+
+        :param host: a Host instance
+        """
+        self.tools.restart_VM(host)
+        # TODO Record result?
+
+    def hard_delete(self, host):
+        """Delete a host through the Azure SDK.
+
+        This should be used only as a last resort, when the machine is still
+        being deployed and there is no Terraform state file available.
+
+        :param host: a Host instance"""
+        self.tools.delete_VM(host)
+        self._record_result(host, HostStatus.defining)
+        # remove the deploying task's ID from the database
+        host.update(task=None)
