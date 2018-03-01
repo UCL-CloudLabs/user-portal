@@ -97,29 +97,7 @@ class AzureTools(object):
             ]
         except Exception as e:
             return HostStatus.unknown
-        prov_state = _get_provisioning_state_azure(statuses)
-        if prov_state == "deleting":
-            return HostStatus.destroying
-        else:
-            for status in statuses:
-                # Look for the (one?) status which holds the PowerState. This would
-                # be nicer if we could guarantee that there are always exactly two
-                # statuses (provisioning and power), but I'm not sure whether that
-                # is true.
-                if not status.startswith("PowerState"):
-                    continue
-                power_state = _remove_prefix(status, "PowerState/")
-                if power_state == "deallocated":
-                    return HostStatus.stopped
-                elif power_state == "starting":
-                    return HostStatus.starting
-                elif power_state == "running":
-                    return HostStatus.running
-                elif (power_state == "deallocating" or power_state == "stopping"
-                      or power_state == "stopped"):
-                    # "stopped" still incurs charging; "deallocated" means truly off
-                    return HostStatus.stopping
-            return HostStatus.error  # uknown status, return error
+        return _parse_statuses(statuses)
 
     def _get_credentials(self):
         """Get the necessary credentials for creating the management clients."""
@@ -145,3 +123,29 @@ def _get_provisioning_state_azure(statuses):
             return _remove_prefix(status, "ProvisioningState/")
     assert False  # should never happen
     return None
+
+
+def _parse_statuses(statuses):
+    prov_state = _get_provisioning_state_azure(statuses)
+    if prov_state == "deleting":
+        return HostStatus.destroying
+    else:
+        for status in statuses:
+            # Look for the (one?) status which holds the PowerState. This would
+            # be nicer if we could guarantee that there are always exactly two
+            # statuses (provisioning and power), but I'm not sure whether that
+            # is true.
+            if not status.startswith("PowerState"):
+                continue
+            power_state = _remove_prefix(status, "PowerState/")
+            if power_state == "deallocated":
+                return HostStatus.stopped
+            elif power_state == "starting":
+                return HostStatus.starting
+            elif power_state == "running":
+                return HostStatus.running
+            elif (power_state == "deallocating" or power_state == "stopping"
+                  or power_state == "stopped"):
+                # "stopped" still incurs charging; "deallocated" means truly off
+                return HostStatus.stopping
+        return HostStatus.error  # uknown status, return error
