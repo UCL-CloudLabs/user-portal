@@ -198,9 +198,12 @@ Set up Celery & RabbitMQ:
 sudo apt-get install rabbitmq-server
 sudo cp CloudLabs/conf_files/rabbitmq-server /etc/default/rabbitmq-server
 sudo cp CloudLabs/conf_files/celery-init /etc/init.d/celeryd
+sudo cp CloudLabs/conf_files/celerybeat-init /etc/init.d/celerybeat
 sudo cp CloudLabs/conf_files/celery-defaults /etc/default/celeryd
 sudo update-rc.d celeryd defaults 25
 sudo /etc/init.d/celeryd restart
+sudo update-rc.d celerybeat defaults 25
+sudo /etc/init.d/celerybeat restart
 ```
 
 ### Upgrading the staging server
@@ -210,7 +213,7 @@ Notably:
 1. Pull latest changes from GitHub
 2. Install latest package requirements
 3. Apply DB migrations
-4. Restart Celery & Apache
+4. Restart Celery (both celeryd and celerybeat) & Apache
 
 
 ## Useful reference websites
