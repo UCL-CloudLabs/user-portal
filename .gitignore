@@ -19,3 +19,8 @@ __pycache__
 src/test/secrets.tar
 src/test/id*
 .travis.tar
+
+# Celery stuff
+celerybeat-schedule.db
+worker_state.db
+celerybeat.pid

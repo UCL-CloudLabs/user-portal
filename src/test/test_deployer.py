@@ -87,8 +87,9 @@ class TestDeployer:
             'admin_ssh_key_id': 1,
             'admin_password': self._haikunate('!')
         }
-        yield Host.create(**fields)
-        deployer.destroy()
+        host = Host.create(**fields)
+        yield host
+        deployer.destroy(host)
 
     def test_deployer_config(self, app, deployer):
         '''

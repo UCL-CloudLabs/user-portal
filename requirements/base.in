@@ -12,11 +12,12 @@ psycopg2
 Flask-SQLAlchemy
 Flask-Migrate
 
-# Deployment
-python-terraform
-
 # Task queue
 celery
 
 # Name randomisation
 haikunator
+
+# Azure
+azure-mgmt-compute>=3.0.1
+azure-mgmt-resource

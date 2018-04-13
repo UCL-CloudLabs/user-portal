@@ -39,6 +39,16 @@ def resource_names(host):
     }
 
 
+def group_name(host):
+    """Get the resource group corresponding to a host, according to its name."""
+    return host.dns_name + 'rg'
+
+
+def vm_name(host):
+    """Get the name of the machine resource corresponding to a host."""
+    return host.dns_name + 'vm'
+
+
 def azure_url(dns_name):
     """Return the full URL of a VM hosted on Azure given its DNS name."""
     return '{}.ukwest.cloudapp.azure.com'.format(dns_name)

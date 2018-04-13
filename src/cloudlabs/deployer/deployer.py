@@ -4,9 +4,9 @@ import subprocess
 from flask import current_app
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
-from python_terraform import Terraform
 from tempfile import TemporaryDirectory
 
+from ..azure_tools import AzureTools
 from ..host_status import HostStatus
 from ..names import resource_names
 
@@ -20,8 +20,7 @@ class Deployer:
      * AZURE_CLIENT_ID: 'cloudlabs' Azure AD Application Client ID.
      * AZURE_CLIENT_ID: with your Azure AD Application Secret.
      * AZURE_SUBSCRIPTION_ID: UCL RSDG's Azure subscription ID.
-    TODO: For now these are stored in variables.tf, but they'll be moved to an
-    Azure key vault.
+    These variables are stored in environment variables and read by Terraform.
     '''
     def __init__(self, app_path=Path.cwd()):
         '''
@@ -29,8 +28,8 @@ class Deployer:
         '''
         self.template_path = Path(app_path, "deployer", "terraform")
         self.tempdir = TemporaryDirectory()
-        self.tfstate_path = self.tempdir.name
-        self.tf = Terraform(working_dir=self.tfstate_path)
+        self.tfstate_path = os.path.join(self.tempdir.name, 'terraform.tfstate')
+        self.tools = AzureTools()
 
     def _render(self, host):
         '''
@@ -52,9 +51,11 @@ class Deployer:
         #     # TODO raise?
 
         print(rendered_template)
+        # Also store the instantiated template in the DB
+        host.update(template=rendered_template)
 
         # try:
-        with open(str(Path(self.tfstate_path, "terraform.tf")), "w") as f:
+        with open(str(Path(self.tempdir.name, "terraform.tf")), "w") as f:
                 f.write(rendered_template)
         # except:
         #     # TODO: replace with logging and maybe raise?
@@ -98,9 +99,8 @@ class Deployer:
         updates = {
             'status': status
         }
-        state_path = os.path.join(self.tfstate_path, 'terraform.tfstate')
         try:
-            with open(state_path, 'r') as tf_state:
+            with open(self.tfstate_path, 'r') as tf_state:
                 updates['terraform_state'] = tf_state.read()
         except IOError:
             pass
@@ -110,7 +110,7 @@ class Deployer:
                     command, return_code))
         host.update(**updates)
 
-    def _run_cmd(self, name, host):
+    def _run_cmd(self, name, host, args=[]):
         '''Run a terraform command for the given host.
 
         Will append the command's output & stderr to the host's deploy_log.
@@ -119,8 +119,8 @@ class Deployer:
         :param host: the host object being deployed
         :returns: the subprocess object
         '''
-        process = subprocess.Popen(['terraform', name, '-no-color'],
-                                   cwd=self.tfstate_path,
+        process = subprocess.Popen(['terraform', name, '-no-color'] + args,
+                                   cwd=self.tempdir.name,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT)
         for line in process.stdout:
@@ -129,59 +129,72 @@ class Deployer:
         process.wait()
         return process
 
-    def destroy(self, resource=None):
-        '''
-        Deletes given Terraform resource.
-        It has to make sure there is a Terraform state containing the resource
-        that will be destroyed.
-        After applying a plan, Terraform saves the state on
-        "terraform.tfstate". This is a JSON file that contains the list of
-        resources deployed and their status.
-        '''
-        tf_state = Path(self.tempdir.name, 'terraform.tfstate')
+    def destroy(self, host):
+        """Remove the given CloudLabs host from the cloud.
 
-        if tf_state.exists():
-            if resource:
-                with open(tf_state) as f:
-                    tf_data = json.load(f)
-                try:
-                    res_label = tf_data['modules'][0]['resources'][resource]
-                except KeyError:
-                    print("Resource not found in Terraform state. The "
-                          "available resources for destroying are {}.".format(
-                           ', '.join(
-                             [r for r in tf_data['modules'][0]['resources']])))
-                    # TODO raise
-                    return
-                return_code, stdout, stderr = self.tf.destroy(
-                                                        res_label,
-                                                        capture_output=False
-                                                        )
-            else:
-                print("Destroying all resources...")
-                return_code, stdout, stderr = self.tf.destroy(
-                                                        capture_output=False)
+        :param host: a Host instance
+        """
+        if not host.terraform_state:
+            host.update(
+                status=HostStatus.error,
+                deploy_log=host.deploy_log +
+                '\n\nUnable to destroy host as no state file present!\n\n')
+            return
+        # Write Terraform state to file so Terraform can destroy the host
+        with open(self.tfstate_path, 'w') as tf_state:
+            tf_state.write(host.terraform_state)
+        # We need to write a config file and initialise Terraform (TODO: fix this?)
+        # this can be retrieved from the DB
+        rendered_template = host.template
+        if rendered_template:
+            with open(str(Path(self.tempdir.name, "terraform.tf")), "w") as f:
+                    f.write(rendered_template)
+        else:  # if template not in DB (for whatever reason?), render it again
+            self.render(host)
 
-            if return_code == 0:  # All went well
-                return ("Resource {} destroyed successfully.".format(resource))
-            else:
-                # TODO raise
-                return ("Something went wrong when destroying {}: {}".format(
-                                                                    resource,
-                                                                    stderr))
+        process = self._run_cmd('init', host)
+        if process.returncode != 0:
+            self._record_result(host, HostStatus.error, 'init', process.returncode)
+            return
+        # Now we can destroy the host
+        process = self._run_cmd('destroy', host, args=['-force'])
+        if process.returncode == 0:
+            self._record_result(host, HostStatus.defining)
         else:
-            print("Terraform state does not exist in {}".format(tf_state))
+            self._record_result(host, HostStatus.error, 'destroy', process.returncode)
 
-    def refresh(self):
-        '''
-        User Terraform to update the current state file against real resources.
-        '''
-        # First refresh state
-        return_code, stdout, stderr = self.tf.refresh()
+    def stop(self, host):
+        """Stop a host that is running, but do not remove it from the cloud.
 
-        if return_code == 0:  # All went well
-            return ("Local Terraform state successfully updated.")
-        else:
-            # TODO raise
-            return ("Something went wrong when updating state: {}".format(
-                                                                       stderr))
+        :param host: a Host instance
+        """
+        self.tools.stop_VM(host)
+        # TODO Record result?
+
+    def start(self, host):
+        """Start a (stopped or running) host.
+
+        :param host: a Host instance
+        """
+        self.tools.start_VM(host)
+        # TODO Record result?
+
+    def restart(self, host):
+        """Restart a running host.
+
+        :param host: a Host instance
+        """
+        self.tools.restart_VM(host)
+        # TODO Record result?
+
+    def hard_delete(self, host):
+        """Delete a host through the Azure SDK.
+
+        This should be used only as a last resort, when the machine is still
+        being deployed and there is no Terraform state file available.
+
+        :param host: a Host instance"""
+        self.tools.delete_VM(host)
+        self._record_result(host, HostStatus.defining)
+        # remove the deploying task's ID from the database
+        host.update(task=None)
