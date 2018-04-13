@@ -80,7 +80,7 @@ class Deployer:
             self._record_result(host, HostStatus.error, 'init', process.returncode)
             return
         host.update(deploy_log=host.deploy_log + '\n\nRunning deployment...\n\n')
-        process = self._run_cmd('apply', host)
+        process = self._run_cmd('apply', host, args=['-auto-approve=true'])
         if process.returncode == 0:
             self._record_result(host, HostStatus.running)
         else:
@@ -117,6 +117,7 @@ class Deployer:
 
         :param name: the name of the Terraform command to run
         :param host: the host object being deployed
+        :param args: extra options to pass to the command (optional)
         :returns: the subprocess object
         '''
         process = subprocess.Popen(['terraform', name, '-no-color'] + args,
