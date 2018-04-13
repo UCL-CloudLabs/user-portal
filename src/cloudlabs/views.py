@@ -33,6 +33,12 @@ def data_info():
     return render_template('data_info.html')
 
 
+@blueprint.route('/help')
+def help():
+    """Show a help page with general information about CloudLabs."""
+    return render_template('help.html')
+
+
 @blueprint.route('/keys/add', methods=('GET', 'POST'))
 @login_required
 def add_key():
