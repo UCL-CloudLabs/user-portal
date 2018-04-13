@@ -1,0 +1,11 @@
+
+<div class="login-state">
+  {% if user %}
+    Logged in as <a href="{{ url_for('main.profile') }}">{{ user['name'] }}</a>
+    <a title="Log out" href="{{ url_for('logout') }}"><i class="fa fa-sign-out fa-r"></i></a>
+  {% else %}
+    <a href="{{ url_for('login') }}" class="btn positive-action login-button">
+      <i class="fa fa-sign-in fa-l"></i> Log in with your UCL ID
+    </a>
+  {% endif %}
+</div>

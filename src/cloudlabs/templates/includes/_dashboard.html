@@ -1,0 +1,61 @@
+<!-- Listing of current user's machines -->
+
+<p>
+  This is your dashboard where you can see the list of machines you have created and their status,
+  as well as stop/start them, make alterations to their configuration, download local copies, and create new machines.
+</p>
+
+{% if Roles.owner not in user.roles %}
+<p>
+  Note that in the alpha version of this service, only a small group of test users are able to create hosts. Contact the <a href="mailto:rc-softdev@ucl.ac.uk">Research Software Development Group</a> if you wish to join this group.
+</p>
+{% endif %}
+
+<table class="hosts">
+  <tr>
+      <th>Name</th>
+      <th>Address</th>
+      <th>Status</th>
+      <th>Actions</th>
+  </tr>
+  {% for host in user.hosts %}
+    <tr>
+      <td>{{ host.label }}</td>
+      <td><a href="{{ host.link }}">{{ host.basic_url }}</a></td>
+      <td>
+        {%- if host.status in [HostStatus.deploying, HostStatus.error, HostStatus.destroying] -%}
+          <a href="{{ url_for('host.view_log', id=host.id) }}">
+        {%- endif -%}
+        {{ host.status.value }}
+        {%- if host.status in [HostStatus.deploying, HostStatus.error, HostStatus.destroying] -%}
+          </a>
+        {%- endif -%}
+      </td>
+      <td>
+        {% if host.status in [HostStatus.running, HostStatus.starting] %}
+          <a href="{{ url_for('host.control', id=host.id, action='stop') }}"><img src="{{ url_for('static', filename='img/stop.svg') }}" alt="Stop virtual machine" class="action" /></a>
+        {% endif %}
+        {% if host.status == HostStatus.running %}
+          <a href="{{ url_for('host.control', id=host.id, action='restart') }}"><img src="{{ url_for('static', filename='img/restart.svg') }}" alt="Restart virtual machine" class="action" /></a>
+        {% endif %}
+        {% if host.status == HostStatus.stopped %}
+          <a href="{{ url_for('host.control', id=host.id, action='start') }}"><img src="{{ url_for('static', filename='img/start.svg') }}" alt="Start virtual machine" class="action" /></a>
+        {% endif %}
+        <a href="{{ url_for('host.edit', id=host.id) }}"><img src="{{ url_for('static', filename='img/configure.svg') }}" alt="Configure virtual machine') }}" class="action" /></a>
+        <a href="{{ url_for('host.download', id=host.id) }}"><img src="{{ url_for('static', filename='img/download.svg') }}" alt="Download virtual machine image" class="action" /></a>
+        <img src="{{ url_for('static', filename='img/delete.svg') }}" alt="Delete virtual machine" class="action" onclick="confirm_delete('{{ url_for('host.delete', id=host.id) }}', '{{'delete' if host.status in [HostStatus.defining, HostStatus.error] else 'destroy'}}')" />
+        <a href="{{ url_for('host.info', id=host.id) }}"><img src="{{ url_for('static', filename='img/info.svg') }}" alt="Show virtual machine info" class="action" /></a>
+      </td>
+    </tr>
+  {% endfor %}
+</table>
+
+{% if Roles.owner in user.roles %}
+  <a class="btn" href="{{ url_for('host.add') }}">Add new host</a>
+{% endif %}
+
+{% if user.hosts.count() > 0 %}
+  <p class="text-right small cite">
+    Button icons designed by authors from Flaticon.
+  </p>
+{% endif %}

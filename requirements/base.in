@@ -1,10 +1,23 @@
 # Flask web framework
 Flask
+flask-sso
+Flask-WTF
+pathlib
 
 # For making http requests
 requests
 
 # Database connection
-#psycopg2
-#Flask-SQLAlchemy
-#Flask-Migrate
+psycopg2
+Flask-SQLAlchemy
+Flask-Migrate
+
+# Task queue
+celery
+
+# Name randomisation
+haikunator
+
+# Azure
+azure-mgmt-compute>=3.0.1
+azure-mgmt-resource

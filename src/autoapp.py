@@ -1,5 +1,6 @@
-import os
 from cloudlabs.app import create_app
+from cloudlabs.secrets import apply_secrets
 
-app = create_app(
-    os.getenv('APP_SETTINGS', 'reporting.config.Config'))
+
+apply_secrets()
+app = create_app()

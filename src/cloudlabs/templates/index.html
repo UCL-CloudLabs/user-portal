@@ -1,15 +1,37 @@
-{% extends "indigo/base.html" %}
+{% extends "base.html" %}
 
 {% block breadcrumb_links %}
   <li class="breadcrumb__item"><a href="https://www.ucl.ac.uk/">UCL Home</a></li>
   <li class="breadcrumb__item"><a href="http://www.ucl.ac.uk/research-it-services">Research IT Services</a></li>
-  <li class="breadcrumb__item">Self-serve Web Hosting for Research Applications</li>
+  {% if user %}
+    <li class="breadcrumb__item"><a href="{{ url_for('main.index') }}">Self-serve Web Hosting for Research Applications</a></li>
+    <li class="breadcrumb__item">Dashboard</li>
+  {% else %}
+    <li class="breadcrumb__item">Self-serve Web Hosting for Research Applications</li>
+  {% endif %}
 {% endblock breadcrumb_links %}
 
 {% block content %}
   <h1>Self-serve Web Hosting for Research Applications</h1>
   <p>Welcome to the trial 'CloudLabs' service for easy hosting of research web applications.</p>
-  <p>This is a testing welcome page.</p>
-  <p>In the future there will be links to documentation, info about the service, and a Shibboleth login link.</p>
-  <button>Log in with UCL credentials</button>
+  <p>In the future there will be links to documentation about the service.</p>
+
+  {% if user %}
+    {% include "includes/_dashboard.html" %}
+  {% else %}
+    <p>You need to log in with your UCL credentials in order to use this service.</p>
+    <a class="btn" href="{{ url_for('login') }}">Log in with UCL credentials</a>
+  {% endif %}
 {% endblock content %}
+
+
+{% block scripts %}
+  {{ super() }}
+  {# TODO: Put this in a static JS file loaded with require() and using jQuery #}
+  <script>
+    function confirm_delete(url, action) {
+        if (confirm('Are you sure you want to ' + action + ' this machine?'))
+            document.location.href = url;
+    }
+  </script>
+{% endblock scripts %}

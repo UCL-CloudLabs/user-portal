@@ -1,0 +1,26 @@
+# Virtualenv location given in README.md
+/venv
+
+# Environment setup
+env.sh
+secrets.py
+
+# Python stuff
+__pycache__
+**.pyc
+
+# Terraform stuff
+**/.cache
+**tfstate.backup
+**/terraform/*tfstate*
+**/terraform/terraform.tf
+
+# App secrets
+src/test/secrets.tar
+src/test/id*
+.travis.tar
+
+# Celery stuff
+celerybeat-schedule.db
+worker_state.db
+celerybeat.pid
