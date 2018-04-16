@@ -26,6 +26,7 @@ blueprint = Blueprint('host', __name__)
 @blueprint.route('/host/<int:id>')
 @login_required
 def info(id):
+    log_action(id, "view info on")
     host = Host.query.get_or_404(id)
     abort_if_not_owner(host)
     return render_template('host_info.html', host=host)
@@ -82,6 +83,7 @@ def customise_setup():
 @blueprint.route('/host/<int:id>/edit')
 @role_required(Roles.owner)
 def edit(id):
+    log_action(id, "edit")
     host = Host.query.get_or_404(id)
     abort_if_not_owner(host)
     return render_template('not_implemented.html', host=host,
@@ -91,6 +93,7 @@ def edit(id):
 @blueprint.route('/host/<int:id>/delete')
 @role_required(Roles.owner)
 def delete(id):
+    log_action(id, "delete")
     host = Host.query.get_or_404(id)
     abort_if_not_owner(host)
     label = host.label
@@ -107,6 +110,7 @@ def delete(id):
 def control(id):
     """Also takes `action` as a query parameter."""
     action = request.args.get('action', '')
+    log_action(id, action)
     if action not in {'stop', 'start', 'restart'}:
         flash('Unsupported action "{}"'.format(action), 'error')
         return redirect(url_for('main.index'))
@@ -128,6 +132,7 @@ def control(id):
 @blueprint.route('/host/<int:id>/download')
 @role_required(Roles.owner)
 def download(id):
+    log_action(id, "download")
     host = Host.query.get_or_404(id)
     abort_if_not_owner(host)
     return render_template('not_implemented.html', host=host,
@@ -137,6 +142,7 @@ def download(id):
 @blueprint.route('/host/<int:id>/view_log')
 @role_required(Roles.owner)
 def view_log(id):
+    log_action(id, "view the log of")
     host = Host.query.get_or_404(id)
     abort_if_not_owner(host)
     return render_template('deploy_log.html', host=host)
@@ -204,8 +210,7 @@ def restart(host):
 
 
 def log_action(host, action):
-    current_app.logger.info(
-            "{} asked to {} host {}".format(g.user.name, action, host))
+    current_app.logger.info("%s asked to %s host %s", g.user.ucl_id, action, host)
 
 
 def abort_if_not_owner(host):
