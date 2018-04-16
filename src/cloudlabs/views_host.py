@@ -27,8 +27,7 @@ blueprint = Blueprint('host', __name__)
 @login_required
 def info(id):
     host = Host.query.get_or_404(id)
-    if host.user is not g.user:
-        abort(404)
+    abort_if_not_owner(host)
     return render_template('host_info.html', host=host)
 
 
@@ -72,8 +71,7 @@ def customise_setup():
     if form.validate_on_submit():
         # Save the updated setup script
         host = Host.query.get_or_404(form.id.data)
-        if host.user is not g.user:
-            abort(404)
+        abort_if_not_owner(host)
         host.update(setup_script=form.setup_script.data)
         deploy(host)
         flash('Host "{}" added'.format(host.label), 'success')
@@ -85,8 +83,7 @@ def customise_setup():
 @role_required(Roles.owner)
 def edit(id):
     host = Host.query.get_or_404(id)
-    if host.user is not g.user:
-        abort(404)
+    abort_if_not_owner(host)
     return render_template('not_implemented.html', host=host,
                            thing='Editing hosts')
 
@@ -95,8 +92,7 @@ def edit(id):
 @role_required(Roles.owner)
 def delete(id):
     host = Host.query.get_or_404(id)
-    if host.user is not g.user:
-        abort(404)
+    abort_if_not_owner(host)
     label = host.label
     if host.status in [HostStatus.defining, HostStatus.error]:
         host.delete()
@@ -115,8 +111,7 @@ def control(id):
         flash('Unsupported action "{}"'.format(action), 'error')
         return redirect(url_for('main.index'))
     host = Host.query.get_or_404(id)
-    if host.user is not g.user:
-        abort(404)
+    abort_if_not_owner(host)
     if action == 'stop':
         stop(host)
         return redirect(url_for('main.index'))
@@ -134,8 +129,7 @@ def control(id):
 @role_required(Roles.owner)
 def download(id):
     host = Host.query.get_or_404(id)
-    if host.user is not g.user:
-        abort(404)
+    abort_if_not_owner(host)
     return render_template('not_implemented.html', host=host,
                            thing='Downloading host images')
 
@@ -144,8 +138,7 @@ def download(id):
 @role_required(Roles.owner)
 def view_log(id):
     host = Host.query.get_or_404(id)
-    if host.user is not g.user:
-        abort(404)
+    abort_if_not_owner(host)
     return render_template('deploy_log.html', host=host)
 
 
@@ -208,3 +201,17 @@ def restart(host):
             'cloudlabs.restart',
             args=(host.id,))
     flash('Host "{}" restart scheduled'.format(host.label), 'success')
+
+
+def log_action(host, action):
+    current_app.logger.info(
+            "{} asked to {} host {}".format(g.user.name, action, host))
+
+
+def abort_if_not_owner(host):
+    if g.user is not host.user:
+        current_app.logger.warning(
+            "%s tried to perform an operation on host %d but did not have access",
+            g.user.ucl_id,
+            host.id)
+        abort(404)
