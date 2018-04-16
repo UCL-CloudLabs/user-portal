@@ -24,3 +24,6 @@ src/test/id*
 celerybeat-schedule.db
 worker_state.db
 celerybeat.pid
+
+# Logs
+cloudlabs.log*
