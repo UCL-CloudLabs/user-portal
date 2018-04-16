@@ -215,6 +215,8 @@ Notably:
 3. Apply DB migrations
 4. Restart Celery (both celeryd and celerybeat) & Apache
 
+Note that Celery **must** be restarted even when the tasks themselves have not
+been changed, otherwise they will keep using an older version of the main code. 
 
 ## Useful reference websites
 
