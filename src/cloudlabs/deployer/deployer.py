@@ -124,6 +124,9 @@ class Deployer:
                                    cwd=self.tempdir.name,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT)
+        current_app.logger.info(
+            'Running command "%s" for host %s', " ".join(process.args), host.id
+        )
         for line in process.stdout:
             print(line.decode('utf-8'), end='')
             host.update(deploy_log=host.deploy_log + line.decode('utf-8'))
