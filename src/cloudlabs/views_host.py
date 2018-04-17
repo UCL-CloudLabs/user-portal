@@ -170,12 +170,15 @@ def destroy(host):
         # deletion process (interrupting the deployment).
         if host.task:
             hard_delete = True
-            print("Deployment in progress, will revoke task!")  # DEBUG
-            print("Revoking " + host.task)  # DEBUG
+            current_app.logger.info(
+                "Deployment of host %s in progress, will revoke task %s.",
+                host.id,
+                host.task)
             celery.control.revoke(host.task, terminate=True)
         else:
             hard_delete = False
-        print("Will send destroy task (hard = {})".format(hard_delete))
+        current_app.logger.info(
+            "Sending destroy task for host %s (hard = %s)", host.id, hard_delete)
         celery.send_task(
             'cloudlabs.destroy',
             args=(host.id, hard_delete))
