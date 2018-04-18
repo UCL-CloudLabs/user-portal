@@ -64,3 +64,9 @@ class DevConfig(Config):
 
     # How many worker processes to run
     CELERY_WORKER_CONCURRENCY = 2
+
+class LocalDevConfig(DevConfig):
+    # Point to where in local machine keys are
+    PRIVATE_SSH_KEY_PATH = os.environ.get(
+        'PRIVATE_SSH_KEY_PATH',
+        '~/.ssh/id_rsa_azure')
