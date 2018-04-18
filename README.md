@@ -30,6 +30,16 @@ export FLASK_DEBUG=True
 export APP_SETTINGS=cloudlabs.config.DevConfig
 ```
 
+It is recommended that you create your own SSH key pair for local testing. Please name the keys `id_rsa_azure`.
+
+Note that if you want to run the tests locally, you'll need to configure `PRIVATE_SSH_KEY_PATH` so it points to the folder where you have the private and public ssh keys. 
+Alternatively, you can also use `LocalDevConfig` if your keys are named `id_rsa_azure` and stored in `~/.ssh` like so:
+
+```
+export APP_SETTINGS=cloudlabs.config.LocalDevConfig 
+```
+
+
 ### Configure secrets
 
 Copy the file `src/cloudlabs/secrets.example.py` as `src/cloudlabs/secrets.py` and fill in suitable values.
