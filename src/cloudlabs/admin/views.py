@@ -2,7 +2,9 @@
 from flask import (
     abort,
     Blueprint,
+    current_app,
     flash,
+    g,
     redirect,
     render_template,
     request,
@@ -40,12 +42,16 @@ def user():
         # Add new role
         user.roles.add(role)
         user.save()
+        current_app.logger.info("An admin (%s) has given role '%s' to user %s",
+                                g.user.ucl_id, role.value, user.ucl_id)
         flash('Role {} added for {}'.format(role.value, user.name), 'success')
     else:
         # Remove existing role
         try:
             user.roles.remove(role)
             user.save()
+            current_app.logger.info("An admin (%s) has removed role '%s' from user %s",
+                                    g.user.ucl_id, role.value, user.ucl_id)
             flash('Role {} removed from {}'.format(role.value, user.name), 'success')
         except KeyError:
             flash('User {} does not have role {}'.format(user.name, role.value), 'error')

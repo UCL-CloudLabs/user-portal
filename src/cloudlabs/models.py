@@ -1,5 +1,6 @@
 import json
 
+from flask import current_app
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref
 
@@ -49,6 +50,8 @@ class User(Model):
         user = cls.query.filter_by(ucl_id=ucl_id).first()
         if user is None:
             user = cls.create(ucl_id=ucl_id, **kwargs)
+            current_app.logger.info("A new user %s (%s) has been created",
+                                    user.ucl_id, user.name)
         else:
             fields = ['name', 'email', 'upi']
             updates = {}
@@ -56,6 +59,10 @@ class User(Model):
                 if kwargs[field] != getattr(user, field):
                     updates[field] = kwargs[field]
             if updates:
+                current_app.logger.info(
+                    "Updating information for user {} ".format(user.ucl_id)
+                    + ", ".join("{}={}".format(attr, updates[attr]) for attr in updates)
+                )
                 user.update(**updates)
         return user
 
