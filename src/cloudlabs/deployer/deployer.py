@@ -82,8 +82,12 @@ class Deployer:
         process = self._run_cmd('apply', host, args=['-auto-approve=true'])
         if process.returncode == 0:
             self._record_result(host, HostStatus.running)
+            current_app.logger.info("Host %s successfully deployed", host.id)
         else:
             self._record_result(host, HostStatus.error, 'apply', process.returncode)
+            current_app.logger.error(
+                "Deployment of host %s failed (Terraform return code %s)",
+                host.id, process.returncode)
 
     def _record_result(self, host, status, command=None, return_code=None):
         """Record the result of a Terraform run in the DB.

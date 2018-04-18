@@ -150,6 +150,8 @@ def view_log(id):
 
 def deploy(host):
     """Signals Celery to launch a VM in the background."""
+    current_app.logger.info("%s asked to deploy new host %s (%s)",
+                            g.user.ucl_id, host.id, host.base_name)
     host.update(status=HostStatus.deploying)
     celery = create_celery(current_app)
     result = celery.send_task(
