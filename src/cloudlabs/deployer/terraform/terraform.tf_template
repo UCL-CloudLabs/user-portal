@@ -8,6 +8,11 @@ variable "azure_client_secret" {
 variable "azure_tenant_id" {
 }
 
+# CloudLabs now needs TF > 0.11.0
+terraform {
+  required_version = "> 0.11.0"
+}
+
 # Configure Azure provider
 provider "azurerm" {
   subscription_id = "${var.azure_subscription_id}"
@@ -106,7 +111,7 @@ resource "azurerm_virtual_machine" "vm" {
     vm_size = "{{host.vm_type}}"
 
     storage_image_reference {
-        publisher = "Canonical"
+        publisher = "{{host.os_publisher}}"
         offer = "{{host.os_offer}}"
         sku = "{{host.os_sku}}"
         version = "{{host.os_version}}"
