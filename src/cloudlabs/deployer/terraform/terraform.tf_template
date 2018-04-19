@@ -103,13 +103,13 @@ resource "azurerm_virtual_machine" "vm" {
     location = "ukwest"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     network_interface_ids = ["${azurerm_network_interface.ni.id}"]
-    vm_size = "Standard_A6"
+    vm_size = "{{host.vm_type}}"
 
     storage_image_reference {
         publisher = "Canonical"
-        offer = "UbuntuServer"
-        sku = "16.04-LTS"
-        version = "latest"
+        offer = "{{host.os_offer}}"
+        sku = "{{host.os_sku}}"
+        version = "{{host.os_version}}"
     }
 
     storage_os_disk {

@@ -35,6 +35,14 @@ class TestDeployer:
         return True
 
     @pytest.fixture
+    def ssh_key(self, user, resource_name, public_key):
+        SshKey.create(
+            user_id=1,
+            label=resource_name,
+            public_key=public_key)
+        return True
+
+    @pytest.fixture
     def deployer(self):
         return Deployer(Path('cloudlabs').absolute())
 
@@ -45,6 +53,22 @@ class TestDeployer:
     @pytest.fixture
     def dnsname(self):
         return self._haikunate()
+
+    @pytest.fixture
+    def os_offer(self):
+        return 'UbuntuServer'
+
+    @pytest.fixture
+    def os_sku(self):
+        return '16.04-LTS'
+
+    @pytest.fixture
+    def os_version(self):
+        return 'latest'
+
+    @pytest.fixture
+    def vm_type(self):
+        return 'Standard_A6'
 
     @pytest.fixture
     def app(self):
@@ -66,9 +90,9 @@ class TestDeployer:
 
     @pytest.fixture
     def host(self, app, deployer, dnsname, public_key, private_key_path,
-             resource_name, ssh_key):
+             resource_name, ssh_key, os_offer, os_sku, os_version, vm_type):
         '''
-        Helper method to create a VM with randome username/passwd and test
+        Helper method to create a VM with random username/passwd and test
         SSH keys.
         '''
         # First we need to create a key with an ID so we can point to it
@@ -85,7 +109,11 @@ class TestDeployer:
                 'https://github.com/UCL-CloudLabs/docker-sample.git -b levine',
             'port': 5006,
             'admin_ssh_key_id': 1,
-            'admin_password': self._haikunate('!')
+            'admin_password': self._haikunate('!'),
+            'os_offer': os_offer,
+            'os_sku': os_sku,
+            'os_version': os_version,
+            'vm_type': vm_type
         }
         host = Host.create(**fields)
         yield host

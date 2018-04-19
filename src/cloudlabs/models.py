@@ -97,6 +97,10 @@ class Host(Model):
     # The actual domain name, including anything added for randomisation
     dns_name = db.Column(db.String(50), unique=True, index=True,
                          nullable=False)
+    os_offer = db.Column(db.String(50))
+    os_sku = db.Column(db.String(50))
+    os_version = db.Column(db.String(50))
+    vm_type = db.Column(db.String(50))
     # TODO different max lenghts for base_name and dns_name?
     # TODO also keep the final DNS used, depending on the provider chosen?
     # (actually link() should be fine, but keeping comment for now for clarity)
