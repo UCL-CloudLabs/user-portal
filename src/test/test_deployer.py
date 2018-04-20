@@ -57,22 +57,6 @@ class TestDeployer:
     def dnsname(self):
         return self._haikunate()
 
-    # @pytest.fixture
-    # def os_offer(self):
-    #     return 'UbuntuServer'
-    #
-    # @pytest.fixture
-    # def os_sku(self):
-    #     return '16.04-LTS'
-    #
-    # @pytest.fixture
-    # def os_version(self):
-    #     return 'latest'
-
-    # @pytest.fixture
-    # def vm_type(self):
-    #     return 'Standard_A6'
-
     @pytest.fixture
     def app(self):
         return create_app(
@@ -91,9 +75,30 @@ class TestDeployer:
     def private_key_path(self):
         return Path('test/id_rsa_travis_azure').absolute()
 
+    # TODO: test with windows too
+    # {'publisher': 'MicrosoftWindowsServer',
+    #  'offer': 'WindowsServer',
+    #  'sku': '2012-R2-Datacenter',
+    #  'version': 'latest'},
+    @pytest.fixture(params=['14.04.5-LTS', '16.04-LTS', '17.10'])
+    def os(self, request):
+        os.publisher = 'Canonical'
+        os.offer = 'UbuntuServer'
+        os.sku = request.param
+        os.version = 'latest'
+        return os
+
+    # Testing with 2 types of machines that are fast to build, but expensive
+    # Standard_A7: 8 cores, 56GB RAM, £1.1/hour
+    # D14_V2_Promo: 16 cores, 112GB RAM, £1.4/hour
+    # TODO: Test instead with machines we choose to offer on new VM web form
+    @pytest.fixture(params=['Standard_A7', 'Standard_D14_V2_Promo'])
+    def vm_type(self, request):
+        return request.param
+
     @pytest.fixture
     def host(self, app, deployer, dnsname, public_key, private_key_path,
-             resource_name, ssh_key):
+             resource_name, ssh_key, os, vm_type):
         '''
         Helper method to create a VM with random username/passwd and test
         SSH keys.
@@ -112,7 +117,12 @@ class TestDeployer:
                 'https://github.com/UCL-CloudLabs/docker-sample.git -b levine',
             'port': 5006,
             'admin_ssh_key_id': 1,
-            'admin_password': self._haikunate('!')
+            'admin_password': self._haikunate('!'),
+            'vm_type': vm_type,
+            'os_publisher': os.publisher,
+            'os_offer': os.offer,
+            'os_sku': os.sku,
+            'os_version': os.version
         }
         host = Host.create(**fields)
         yield host
@@ -125,52 +135,10 @@ class TestDeployer:
         assert deployer.template_path == Path(
             'cloudlabs/deployer/terraform').absolute()
 
-# @pytest.mark.parametrize('sku', ['14.04.5-LTS',
-#                                  '16.04-LTS',
-#                                  '17.10']):
-# @pytest.mark.parametrize('vm_type', ['Standard_A6', ''])
-# def test_deploy_ubuntu_vm(self, sku):
-    # TODO: Choose a suitable list of machines and OS.
-    @pytest.mark.parametrize("vm_type",
-                             ["Standard_A7"])
-    @pytest.mark.parametrize("os", [{'publisher': 'Canonical',
-                                     'offer': 'UbuntuServer',
-                                     'sku': '16.04-LTS',
-                                     'version': 'latest'},
-                                    {'publisher': 'Canonical',
-                                     'offer': 'UbuntuServer',
-                                     'sku': '17.10',
-                                     'version': 'latest'},
-
-                                    # {'publisher': 'MicrosoftWindowsServer',
-                                    #  'offer': 'WindowsServer',
-                                    #  'sku': '2012-R2-Datacenter',
-                                    #  'version': 'latest'},
-                                    ])
-    # def test_deploy_host(self, vm_type, os):
-    #     '''
-    #     Create a test host with made up parameters, deploy on azure and ping.
-    #     '''
-    #     host = self._create_host(vm_type, os)
-    #     deployer.deploy(host)
-    #     # Wait for 10 secs so we make sure app has had the time to be deployed.
-    #     sleep(10)
-    #     # URL and port are available through the host's link property
-    #     url = host.link
-    #     # Check website is live
-    #     response = requests.get(url)
-    #     assert 200 == response.status_code
-#
-    def test_deployer(self, app, resource_name, deployer, host, vm_type, os):
+    def test_deployer(self, app, resource_name, deployer, host):
         '''
         Create a test host with made up parameters, deploy on azure and ping.
         '''
-        host.vm_type = vm_type
-        host.os_publisher = os['publisher']
-        host.os_offer = os['offer']
-        host.os_sku = os['sku']
-        host.os_version = os['version']
-
         deployer.deploy(host)
         # Wait for 10 secs so we make sure app has had the time to be deployed.
         sleep(10)
