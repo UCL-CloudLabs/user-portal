@@ -128,10 +128,10 @@ class TestDeployer:
                                      'offer': 'UbuntuServer',
                                      'sku': '16.04-LTS',
                                      'version': 'latest'},
-                                    {'publisher': 'MicrosoftWindowsServer',
-                                     'offer': 'WindowsServer',
-                                     'sku': '2012-R2-Datacenter',
-                                     'version': 'latest'},
+                                    # {'publisher': 'MicrosoftWindowsServer',
+                                    #  'offer': 'WindowsServer',
+                                    #  'sku': '2012-R2-Datacenter',
+                                    #  'version': 'latest'},
                                     ])
     # def test_deploy_host(self, vm_type, os):
     #     '''
