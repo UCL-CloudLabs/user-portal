@@ -32,7 +32,8 @@ export APP_SETTINGS=cloudlabs.config.DevConfig
 
 It is recommended that you create your own SSH key pair for local testing. Please name the keys `id_rsa_azure`.
 
-Note that if you want to run the tests locally, you'll need to configure `PRIVATE_SSH_KEY_PATH` so it points to the folder where you have the private and public ssh keys. 
+Note that if you want to run the tests locally, you'll need to configure `PRIVATE_SSH_KEY_PATH` so it points to the location where the private key is. The corresponding public key should then be in `$PRIVATE_SSH_KEY_PATH.pub`.  
+
 Alternatively, you can also use `LocalDevConfig` if your keys are named `id_rsa_azure` and stored in `~/.ssh` like so:
 
 ```
