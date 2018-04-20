@@ -88,13 +88,13 @@ class TestDeployer:
         os.version = 'latest'
         return os
 
-    # Testing with 2 types of machines that are fast to build, but expensive
-    # Standard_A7: 8 cores, 56GB RAM, £1.1/hour
-    # D14_V2_Promo: 16 cores, 112GB RAM, £1.4/hour
-    # TODO: Test instead with machines we choose to offer on new VM web form
-    @pytest.fixture(params=['Standard_A7', 'Standard_D14_V2_Promo'])
-    def vm_type(self, request):
-        return request.param
+    @pytest.fixture()
+    def vm_type(self):
+        '''
+        Test on Standard_A7: 8 cores, 56GB RAM, £1.1/hour.
+        TODO: Test with the machines we choose to offer on new VM web form.
+        '''
+        return 'Standard_A7'
 
     @pytest.fixture
     def host(self, app, deployer, dnsname, public_key, private_key_path,
