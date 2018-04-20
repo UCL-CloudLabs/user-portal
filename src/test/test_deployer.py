@@ -15,7 +15,10 @@ class TestDeployer:
     '''
     @pytest.fixture
     def user(self):
-        ucl_id = self._haikunate()[0:7]
+        # Randomise ucl_id a bit more. After running several tests locally,
+        # random user names start repeating and breaking the tests.
+        # Adding some more randomness.
+        ucl_id = self._haikunate()[0:5] + self._haikunate()[-2:]
         domain = self._haikunate('.')
         kwargs = {
             'ucl_id': ucl_id,
