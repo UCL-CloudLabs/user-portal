@@ -99,6 +99,7 @@ def delete(id):
     label = host.label
     if host.status in [HostStatus.defining, HostStatus.error]:
         host.delete()
+        current_app.logger.info("Host %s deleted from database", id)
         flash('Virtual machine "{}" deleted'.format(label), 'success')
     else:
         destroy(host)

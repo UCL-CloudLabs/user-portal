@@ -167,8 +167,12 @@ class Deployer:
         process = self._run_cmd('destroy', host, args=['-force'])
         if process.returncode == 0:
             self._record_result(host, HostStatus.defining)
+            current_app.logger.info("Host %s successfully destroyed", host.id)
         else:
             self._record_result(host, HostStatus.error, 'destroy', process.returncode)
+            current_app.logger.info(
+                "Destruction of host %s failed (Terraform return code %s)",
+                host.id, process.returncode)
 
     def stop(self, host):
         """Stop a host that is running, but do not remove it from the cloud.
@@ -205,3 +209,4 @@ class Deployer:
         self._record_result(host, HostStatus.defining)
         # remove the deploying task's ID from the database
         host.update(task=None)
+        current_app.logger.info("Host %s and all its resources deleted", host.id)
