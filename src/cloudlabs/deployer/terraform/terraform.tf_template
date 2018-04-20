@@ -104,7 +104,7 @@ resource "azurerm_storage_container" "storagecont" {
 
 # create virtual machine
 resource "azurerm_virtual_machine" "vm" {
-    name = "{{names.vm}}"
+    name = "cloudlabs_vm"
     location = "ukwest"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     network_interface_ids = ["${azurerm_network_interface.ni.id}"]
@@ -125,7 +125,7 @@ resource "azurerm_virtual_machine" "vm" {
     }
 
     os_profile {
-        computer_name = "{{host.dns_name}}"
+        computer_name = "cloudlabs_vm"
         admin_username = "{{host.admin_username}}"
         {% if host.auth_type=="Password" %}
         admin_password = "{{host.admin_password}}"
