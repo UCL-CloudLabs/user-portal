@@ -112,7 +112,8 @@ class TestDeployer:
             'admin_password': self._haikunate('!')
         }
         host = Host.create(**fields)
-        return host
+        yield host
+        deployer.destroy(host)
 
     def test_deployer_config(self, app, deployer):
         '''
@@ -121,13 +122,25 @@ class TestDeployer:
         assert deployer.template_path == Path(
             'cloudlabs/deployer/terraform').absolute()
 
+# @pytest.mark.parametrize('sku', ['14.04.5-LTS',
+#                                  '16.04-LTS',
+#                                  '17.10']):
+# @pytest.mark.parametrize('vm_type', ['Standard_A6', ''])
+# def test_deploy_ubuntu_vm(self, sku):
+
+
     # TODO: Choose a suitable list of machines and OS.
     @pytest.mark.parametrize("vm_type",
-                             ["Standard_A" + str(i) for i in range(5, 8)])
+                             ["Standard_A7"])
     @pytest.mark.parametrize("os", [{'publisher': 'Canonical',
                                      'offer': 'UbuntuServer',
                                      'sku': '16.04-LTS',
                                      'version': 'latest'},
+                                    {'publisher': 'Canonical',
+                                     'offer': 'UbuntuServer',
+                                     'sku': '17.10',
+                                     'version': 'latest'},
+
                                     # {'publisher': 'MicrosoftWindowsServer',
                                     #  'offer': 'WindowsServer',
                                     #  'sku': '2012-R2-Datacenter',
