@@ -97,6 +97,7 @@ class Host(Model):
     # The actual domain name, including anything added for randomisation
     dns_name = db.Column(db.String(50), unique=True, index=True,
                          nullable=False)
+    os_publisher = db.Column(db.String(50))
     os_offer = db.Column(db.String(50))
     os_sku = db.Column(db.String(50))
     os_version = db.Column(db.String(50))

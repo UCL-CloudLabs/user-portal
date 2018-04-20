@@ -54,21 +54,21 @@ class TestDeployer:
     def dnsname(self):
         return self._haikunate()
 
-    @pytest.fixture
-    def os_offer(self):
-        return 'UbuntuServer'
+    # @pytest.fixture
+    # def os_offer(self):
+    #     return 'UbuntuServer'
+    #
+    # @pytest.fixture
+    # def os_sku(self):
+    #     return '16.04-LTS'
+    #
+    # @pytest.fixture
+    # def os_version(self):
+    #     return 'latest'
 
-    @pytest.fixture
-    def os_sku(self):
-        return '16.04-LTS'
-
-    @pytest.fixture
-    def os_version(self):
-        return 'latest'
-
-    @pytest.fixture
-    def vm_type(self):
-        return 'Standard_A6'
+    # @pytest.fixture
+    # def vm_type(self):
+    #     return 'Standard_A6'
 
     @pytest.fixture
     def app(self):
@@ -90,7 +90,7 @@ class TestDeployer:
 
     @pytest.fixture
     def host(self, app, deployer, dnsname, public_key, private_key_path,
-             resource_name, ssh_key, os_offer, os_sku, os_version, vm_type):
+             resource_name, ssh_key):
         '''
         Helper method to create a VM with random username/passwd and test
         SSH keys.
@@ -109,15 +109,10 @@ class TestDeployer:
                 'https://github.com/UCL-CloudLabs/docker-sample.git -b levine',
             'port': 5006,
             'admin_ssh_key_id': 1,
-            'admin_password': self._haikunate('!'),
-            'os_offer': os_offer,
-            'os_sku': os_sku,
-            'os_version': os_version,
-            'vm_type': vm_type
+            'admin_password': self._haikunate('!')
         }
         host = Host.create(**fields)
-        yield host
-        deployer.destroy(host)
+        return host
 
     def test_deployer_config(self, app, deployer):
         '''
@@ -126,10 +121,42 @@ class TestDeployer:
         assert deployer.template_path == Path(
             'cloudlabs/deployer/terraform').absolute()
 
-    def test_deployer(self, app, resource_name, deployer, host):
+    # TODO: Choose a suitable list of machines and OS.
+    @pytest.mark.parametrize("vm_type",
+                             ["Standard_A" + str(i) for i in range(5, 8)])
+    @pytest.mark.parametrize("os", [{'publisher': 'Canonical',
+                                     'offer': 'UbuntuServer',
+                                     'sku': '16.04-LTS',
+                                     'version': 'latest'},
+                                    {'publisher': 'MicrosoftWindowsServer',
+                                     'offer': 'WindowsServer',
+                                     'sku': '2012-R2-Datacenter',
+                                     'version': 'latest'},
+                                    ])
+    # def test_deploy_host(self, vm_type, os):
+    #     '''
+    #     Create a test host with made up parameters, deploy on azure and ping.
+    #     '''
+    #     host = self._create_host(vm_type, os)
+    #     deployer.deploy(host)
+    #     # Wait for 10 secs so we make sure app has had the time to be deployed.
+    #     sleep(10)
+    #     # URL and port are available through the host's link property
+    #     url = host.link
+    #     # Check website is live
+    #     response = requests.get(url)
+    #     assert 200 == response.status_code
+#
+    def test_deployer(self, app, resource_name, deployer, host, vm_type, os):
         '''
         Create a test host with made up parameters, deploy on azure and ping.
         '''
+        host.vm_type = vm_type
+        host.os_publisher = os['publisher']
+        host.os_offer = os['offer']
+        host.os_sku = os['sku']
+        host.os_version = os['version']
+
         deployer.deploy(host)
         # Wait for 10 secs so we make sure app has had the time to be deployed.
         sleep(10)
