@@ -127,8 +127,6 @@ class TestDeployer:
 #                                  '17.10']):
 # @pytest.mark.parametrize('vm_type', ['Standard_A6', ''])
 # def test_deploy_ubuntu_vm(self, sku):
-
-
     # TODO: Choose a suitable list of machines and OS.
     @pytest.mark.parametrize("vm_type",
                              ["Standard_A7"])
