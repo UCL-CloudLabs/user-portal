@@ -125,7 +125,7 @@ resource "azurerm_virtual_machine" "vm" {
     }
 
     os_profile {
-        computer_name = "cloudlabsvm"
+        computer_name = "${azurerm_resource_group.rg.name}"
         admin_username = "{{host.admin_username}}"
         {% if host.auth_type=="Password" %}
         admin_password = "{{host.admin_password}}"
