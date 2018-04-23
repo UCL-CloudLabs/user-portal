@@ -1,3 +1,4 @@
+import logging
 import os
 import subprocess
 from flask import current_app
@@ -8,6 +9,9 @@ from tempfile import TemporaryDirectory
 from ..azure_tools import AzureTools
 from ..host_status import HostStatus
 from ..names import resource_names
+
+
+logger = logging.getLogger("cloudlabs.deployer")
 
 
 class Deployer:
@@ -82,10 +86,10 @@ class Deployer:
         process = self._run_cmd('apply', host, args=['-auto-approve=true'])
         if process.returncode == 0:
             self._record_result(host, HostStatus.running)
-            current_app.logger.info("Host %s successfully deployed", host.id)
+            logger.info("Host %s successfully deployed", host.id)
         else:
             self._record_result(host, HostStatus.error, 'apply', process.returncode)
-            current_app.logger.error(
+            logger.error(
                 "Deployment of host %s failed (Terraform return code %s)",
                 host.id, process.returncode)
 
@@ -127,7 +131,7 @@ class Deployer:
                                    cwd=self.tempdir.name,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT)
-        current_app.logger.info(
+        logger.info(
             'Running command "%s" for host %s', " ".join(process.args), host.id
         )
         for line in process.stdout:
@@ -167,10 +171,10 @@ class Deployer:
         process = self._run_cmd('destroy', host, args=['-force'])
         if process.returncode == 0:
             self._record_result(host, HostStatus.defining)
-            current_app.logger.info("Host %s successfully destroyed", host.id)
+            logger.info("Host %s successfully destroyed", host.id)
         else:
             self._record_result(host, HostStatus.error, 'destroy', process.returncode)
-            current_app.logger.info(
+            logger.info(
                 "Destruction of host %s failed (Terraform return code %s)",
                 host.id, process.returncode)
 
@@ -209,4 +213,4 @@ class Deployer:
         self._record_result(host, HostStatus.defining)
         # remove the deploying task's ID from the database
         host.update(task=None)
-        current_app.logger.info("Host %s and all its resources deleted", host.id)
+        logger.info("Host %s and all its resources deleted", host.id)

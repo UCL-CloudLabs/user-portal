@@ -1,3 +1,4 @@
+import logging
 
 from flask import (
     abort,
@@ -21,6 +22,8 @@ from .utils import login_required, role_required
 
 
 blueprint = Blueprint('host', __name__)
+logger = logging.getLogger("cloudlabs.hosts")
+admin_logger = logging.getLogger("cloudlabs.admin")
 
 
 @blueprint.route('/host/<int:id>')
@@ -99,7 +102,7 @@ def delete(id):
     label = host.label
     if host.status in [HostStatus.defining, HostStatus.error]:
         host.delete()
-        current_app.logger.info("Host %s deleted from database", id)
+        logger.info("Host %s deleted from database", id)
         flash('Virtual machine "{}" deleted'.format(label), 'success')
     else:
         destroy(host)
@@ -151,8 +154,8 @@ def view_log(id):
 
 def deploy(host):
     """Signals Celery to launch a VM in the background."""
-    current_app.logger.info("%s asked to deploy new host %s (%s)",
-                            g.user.ucl_id, host.id, host.base_name)
+    logger.info("%s asked to deploy new host %s (%s)",
+                g.user.ucl_id, host.id, host.base_name)
     host.update(status=HostStatus.deploying)
     celery = create_celery(current_app)
     result = celery.send_task(
@@ -173,14 +176,14 @@ def destroy(host):
         # deletion process (interrupting the deployment).
         if host.task:
             hard_delete = True
-            current_app.logger.info(
+            logger.info(
                 "Deployment of host %s in progress, will revoke task %s.",
                 host.id,
                 host.task)
             celery.control.revoke(host.task, terminate=True)
         else:
             hard_delete = False
-        current_app.logger.info(
+        logger.info(
             "Sending destroy task for host %s (hard = %s)", host.id, hard_delete)
         celery.send_task(
             'cloudlabs.destroy',
@@ -216,12 +219,12 @@ def restart(host):
 
 
 def log_action(host, action):
-    current_app.logger.info("%s asked to %s host %s", g.user.ucl_id, action, host)
+    logger.info("%s asked to %s host %s", g.user.ucl_id, action, host)
 
 
 def abort_if_not_owner(host):
     if g.user is not host.user:
-        current_app.logger.warning(
+        admin_logger.warning(
             "%s tried to perform an operation on host %d but did not have access",
             g.user.ucl_id,
             host.id)

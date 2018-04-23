@@ -1,8 +1,13 @@
-from flask import current_app, redirect, render_template, request, session, url_for
+import logging
+
+from flask import redirect, render_template, request, session, url_for
 from flask_sso import SSO
 
 from .roles import Roles
 from .utils import setup_user
+
+
+logger = logging.getLogger("cloudlabs.admin")
 
 
 def setup_login(app):
@@ -35,7 +40,7 @@ def setup_shib_login(app):
     @ext.login_error_handler
     def login_error_callback(shib_attrs):
         """Report on a Shibboleth login error."""
-        current_app.logger.error(
+        logger.error(
             "Shibboleth login encountered an error. This is the information received:\n"
             + "Shibboleth:\n"
             + ", ".join("{}={}".format(attr, value) for attr, value in shib_attrs.items())

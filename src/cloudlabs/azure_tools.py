@@ -1,15 +1,18 @@
 """Miscelanneous methods for working with Azure."""
 
 from functools import wraps
+import logging
 
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.compute import ComputeManagementClient
 from azure.mgmt.resource import ResourceManagementClient
-from flask import current_app
 
 from .host_status import HostStatus
 from .names import group_name, vm_name
 from .secrets import Secrets
+
+
+logger = logging.getLogger("cloudlabs.azure")
 
 
 def log(action_name):
@@ -17,11 +20,11 @@ def log(action_name):
     def wrap(f):
         @wraps(f)
         def helper(self, host):
-            current_app.logger.debug(
+            logger.debug(
                 "Asking Azure to %s host %s", action_name, host.id
             )
             f(self, host)
-            current_app.logger.debug(
+            logger.debug(
                 "Azure completed request to %s host %s",
                 action_name, host.id
             )
@@ -73,7 +76,7 @@ class AzureTools(object):
 
     def refresh(self):
         """Set up or refresh the authentication info and management clients."""
-        current_app.logger.info("Refreshing Azure credentials")
+        logger.info("Refreshing Azure credentials")
         self.credentials, self.subscription_id = self._get_credentials()
         self.cmc = ComputeManagementClient(self.credentials, self.subscription_id)
         self.rmc = ResourceManagementClient(self.credentials, self.subscription_id)
