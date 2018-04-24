@@ -1,5 +1,5 @@
 import logging
-from logging.handlers import RotatingFileHandler
+from logging.config import dictConfig
 
 from flask import Flask
 
@@ -25,16 +25,32 @@ def create_app(config_name=None):
     app = Flask(__name__)
     app.config.from_object(config_name)
     # Configure logging
-    # It seems we have to set this to at least as low as the file handler level
-    # (at least for development builds, perhaps not for the actual servers?)
-    app.logger.setLevel(logging.DEBUG)
-    handler = RotatingFileHandler('cloudlabs.log', maxBytes=10000, backupCount=5)
-    handler.setLevel(logging.INFO)  # required only if we want a higher level than the app logger
-    handler.setFormatter(logging.Formatter(
-        '%(asctime)s %(levelname)s: %(message)s '
-        '[in %(pathname)s:%(lineno)d]'
-    ))
-    app.logger.addHandler(handler)
+    dictConfig({
+        'version': 1,
+        'formatters': {
+            'default':
+                {'format':
+                 '[%(name)s] %(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'},
+        },
+        'handlers': {
+            'file': {
+                'class': "logging.handlers.RotatingFileHandler",
+                'level': logging.DEBUG,
+                'filename': 'cloudlabs.log',
+                'maxBytes': 10000,
+                'backupCount': 5,
+                'formatter': 'default'
+            }
+        },
+        'root': {},
+        'loggers': {
+            'cloudlabs': {
+                'level': logging.DEBUG,
+                'handlers': ['file'],
+                'propagate': False
+            }
+        }
+    })
     db.init_app(app)
     migrate.init_app(app, db)
     context_processors.setup(app)
