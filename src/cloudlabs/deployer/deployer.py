@@ -1,10 +1,11 @@
 import logging
 import os
+from pathlib import Path
 import subprocess
+from tempfile import TemporaryDirectory
+
 from flask import current_app
 from jinja2 import Environment, FileSystemLoader
-from pathlib import Path
-from tempfile import TemporaryDirectory
 
 from ..azure_tools import AzureTools
 from ..host_status import HostStatus
@@ -89,9 +90,8 @@ class Deployer:
             logger.info("Host %s successfully deployed", host.id)
         else:
             self._record_result(host, HostStatus.error, 'apply', process.returncode)
-            logger.error(
-                "Deployment of host %s failed (Terraform return code %s)",
-                host.id, process.returncode)
+            logger.error("Deployment of host %s failed (Terraform return code %s)",
+                         host.id, process.returncode)
 
     def _record_result(self, host, status, command=None, return_code=None):
         """Record the result of a Terraform run in the DB.
@@ -131,9 +131,8 @@ class Deployer:
                                    cwd=self.tempdir.name,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT)
-        logger.info(
-            'Running command "%s" for host %s', " ".join(process.args), host.id
-        )
+        logger.info('Running command "%s" for host %s',
+                    " ".join(process.args), host.id)
         for line in process.stdout:
             print(line.decode('utf-8'), end='')
             host.update(deploy_log=host.deploy_log + line.decode('utf-8'))
@@ -174,9 +173,8 @@ class Deployer:
             logger.info("Host %s successfully destroyed", host.id)
         else:
             self._record_result(host, HostStatus.error, 'destroy', process.returncode)
-            logger.info(
-                "Destruction of host %s failed (Terraform return code %s)",
-                host.id, process.returncode)
+            logger.info("Destruction of host %s failed (Terraform return code %s)",
+                        host.id, process.returncode)
 
     def stop(self, host):
         """Stop a host that is running, but do not remove it from the cloud.

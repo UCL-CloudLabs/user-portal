@@ -20,14 +20,10 @@ def log(action_name):
     def wrap(f):
         @wraps(f)
         def helper(self, host):
-            logger.debug(
-                "Asking Azure to %s host %s", action_name, host.id
-            )
+            logger.debug("Asking Azure to %s host %s", action_name, host.id)
             f(self, host)
-            logger.debug(
-                "Azure completed request to %s host %s",
-                action_name, host.id
-            )
+            logger.debug("Azure completed request to %s host %s",
+                         action_name, host.id)
         return helper
     return wrap
 

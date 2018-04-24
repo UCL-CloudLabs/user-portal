@@ -183,8 +183,8 @@ def destroy(host):
             celery.control.revoke(host.task, terminate=True)
         else:
             hard_delete = False
-        logger.info(
-            "Sending destroy task for host %s (hard = %s)", host.id, hard_delete)
+        logger.info("Sending destroy task for host %s (hard = %s)",
+                    host.id, hard_delete)
         celery.send_task(
             'cloudlabs.destroy',
             args=(host.id, hard_delete))

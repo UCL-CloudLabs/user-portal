@@ -53,8 +53,7 @@ class User(Model):
         user = cls.query.filter_by(ucl_id=ucl_id).first()
         if user is None:
             user = cls.create(ucl_id=ucl_id, **kwargs)
-            logger.info("A new user %s (%s) has been created",
-                        user.ucl_id, user.name)
+            logger.info("A new user %s (%s) has been created", user.ucl_id, user.name)
         else:
             fields = ['name', 'email', 'upi']
             updates = {}
