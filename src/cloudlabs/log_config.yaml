@@ -6,7 +6,7 @@ formatters:
 
     default:
 
-        format: "[%(name)s] %(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'"
+        format: "[%(name)s] %(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]"
         datefmt: "%Y-%m-%d %H:%M:%S"
 
 
