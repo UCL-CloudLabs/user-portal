@@ -141,7 +141,7 @@ Copy `src/cloudlabs/secrets.example.py` to `src/cloudlabs/secrets.py` and fill i
 Install Terraform:
 ```bash
 cd
-curl -sSL -o terraform.zip "https://releases.hashicorp.com/terraform/0.10.2/terraform_0.10.2_linux_amd64.zip"
+curl -sSL -o terraform.zip "https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip"
 sudo apt-get install unzip
 unzip terraform.zip
 sudo cp terraform /usr/local/bin/terraform
