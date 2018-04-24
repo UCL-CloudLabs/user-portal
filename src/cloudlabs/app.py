@@ -1,7 +1,7 @@
-import logging
 from logging.config import dictConfig
 
 from flask import Flask
+import yaml
 
 from cloudlabs import (
     context_processors,
@@ -25,32 +25,9 @@ def create_app(config_name=None):
     app = Flask(__name__)
     app.config.from_object(config_name)
     # Configure logging
-    dictConfig({
-        'version': 1,
-        'formatters': {
-            'default':
-                {'format':
-                 '[%(name)s] %(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'},
-        },
-        'handlers': {
-            'file': {
-                'class': "logging.handlers.RotatingFileHandler",
-                'level': logging.DEBUG,
-                'filename': 'cloudlabs.log',
-                'maxBytes': 10000,
-                'backupCount': 5,
-                'formatter': 'default'
-            }
-        },
-        'root': {},
-        'loggers': {
-            'cloudlabs': {
-                'level': logging.DEBUG,
-                'handlers': ['file'],
-                'propagate': False
-            }
-        }
-    })
+    with open(app.config["LOG_CONFIG_FILE"], "r") as config_file:
+        config = yaml.safe_load(config_file.read())
+    dictConfig(config)
     db.init_app(app)
     migrate.init_app(app, db)
     context_processors.setup(app)
