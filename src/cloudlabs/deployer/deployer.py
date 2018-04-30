@@ -121,6 +121,7 @@ class Deployer:
         '''Run a terraform command for the given host.
 
         Will append the command's output & stderr to the host's deploy_log.
+        Will also forward stderr to the log.
 
         :param name: the name of the Terraform command to run
         :param host: the host object being deployed
@@ -130,12 +131,16 @@ class Deployer:
         process = subprocess.Popen(['terraform', name, '-no-color'] + args,
                                    cwd=self.tempdir.name,
                                    stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT)
+                                   stderr=subprocess.PIPE)
         logger.info('Running command "%s" for host %s',
                     " ".join(process.args), host.id)
         for line in process.stdout:
             print(line.decode('utf-8'), end='')
             host.update(deploy_log=host.deploy_log + line.decode('utf-8'))
+        for line in process.stderr:
+            print(line.decode('utf-8'), end='')
+            host.update(deploy_log=host.deploy_log + line.decode('utf-8'))
+            logger.error("(TF for host %s) %s", host.id, line.decode('utf-8').strip('\n'))
         process.wait()
         return process
 
