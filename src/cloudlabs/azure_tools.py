@@ -72,7 +72,9 @@ class AzureTools(object):
 
     def refresh(self):
         """Set up or refresh the authentication info and management clients."""
-        logger.info("Refreshing Azure credentials")
+        # The below is logged every time the periodic status refresh task is run,
+        # which tends to take over the log. Disabling for now.
+        # logger.info("Refreshing Azure credentials")
         self.credentials, self.subscription_id = self._get_credentials()
         self.cmc = ComputeManagementClient(self.credentials, self.subscription_id)
         self.rmc = ResourceManagementClient(self.credentials, self.subscription_id)
