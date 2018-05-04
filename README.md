@@ -148,16 +148,20 @@ sudo cp terraform /usr/local/bin/terraform
 ```
 
 Set up Apache:
-* Place private key in `/etc/ssl/private/staging.cloudlabs.key`
+* Place private key in `/etc/ssl/private/staging.cloudlabs.key` or `/etc/ssl/private/cloudlabs.key`
+* Set the environment variable ENV to indicate whether this is the production or
+  the staging server: `export ENV=staging` or `export ENV=production`
 
 ```bash
 git clone git@github.com:UCL-RITS/CloudLabs.git
-sudo cp CloudLabs/secrets/staging_cloudlabs_rc_ucl_ac_uk.crt /etc/ssl/certs/
-sudo cp CloudLabs/secrets/QuoVadisOVchain.pem /etc/ssl/certs/
-sudo cp CloudLabs/conf_files/{000-default.conf,default-ssl.conf} /etc/apache2/sites-available/
+cd CloudLabs
+python make_conf_files.py  # create the configuration files used below
+sudo cp secrets/cloudlabs_rc_ucl_ac_uk.crt /etc/ssl/certs/
+sudo cp secrets/QuoVadisOVchain.pem /etc/ssl/certs/
+sudo cp conf_files/{000-default.conf,default-ssl.conf} /etc/apache2/sites-available/
 
 sudo chmod 600 /etc/ssl/private/staging.cloudlabs.key
-sudo chmod 644 /etc/ssl/certs/{*cloudlabs,QuoVadisOV}*
+sudo chmod 644 /etc/ssl/certs/{cloudlabs,QuoVadisOV}*
 # Create a separate unprivileged user for the WSGI daemon to run as
 sudo adduser --system --disabled-login --group cloudlabs-wsgi
 sudo a2enmod wsgi shib2 ssl rewrite headers
@@ -216,7 +220,7 @@ Notably:
 4. Restart Celery (both celeryd and celerybeat) & Apache
 
 Note that Celery **must** be restarted even when the tasks themselves have not
-been changed, otherwise they will keep using an older version of the main code. 
+been changed, otherwise they will keep using an older version of the main code.
 
 ## Useful reference websites
 

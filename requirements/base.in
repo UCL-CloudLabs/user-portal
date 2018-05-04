@@ -21,3 +21,6 @@ haikunator
 # Azure
 azure-mgmt-compute>=3.0.1
 azure-mgmt-resource
+
+# Rendering config file templates
+jinja2
