@@ -170,6 +170,8 @@ sudo service apache2 restart
 ```
 
 Set up Shibboleth:
+(the instructions here are for the staging server; for production, replace
+`staging.cloudlabs` with `cloudlabs` everywhere)
 
 ```bash
 sudo shib-keygen -e https://sp.staging.cloudlabs.rc.ucl.ac.uk/shibboleth -h staging.cloudlabs.rc.ucl.ac.uk -o /etc/shibboleth -y 10
