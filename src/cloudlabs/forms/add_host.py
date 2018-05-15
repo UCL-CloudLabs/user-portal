@@ -2,6 +2,7 @@ from flask import g
 from flask_wtf import FlaskForm
 from wtforms.fields import (
     IntegerField,
+    PasswordField,
     SelectField,
     StringField,
     TextAreaField
@@ -52,7 +53,7 @@ class AddHostForm(FlaskForm):
         ' Set up further keys by visiting your profile page.',
         coerce=int)
 
-    admin_password = StringField(
+    admin_password = PasswordField(
         'Admin password',
         description='Password to use for the admin user on this host',
         validators=[v.Optional(), v.Length(min=12,
