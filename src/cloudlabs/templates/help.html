@@ -13,72 +13,90 @@
 <p>Our goal is to enable researchers to easily create virtual machines
 (<em>"hosts"</em>) and other computational resources on which they can run code,
 host web interfaces to their applications, and generally use for the
-purposes of their research.
+purposes of their research. These resources are created remotely ("<em>on the
+cloud</em>"), without researchers needing to acquire dedicated physical
+infrastructure.
 
 <p>We have tried to keep the interface free of too much jargon and let users
 achieve what they want without needing to know many details about cloud
-computing. If you do want to learn some more, ...
-<p>Currently, the service uses Microsoft Azure as a cloud provider for the hosts it
-creates. For more technical information and a general presentation, see... (video or tutorial or ... from Azure or generally)
+computing. If you do want to learn some more, there are many resources online
+about cloud computing; you may find this <a href="https://blogs.msdn.microsoft.com/azure_4_research/2016/10/18/cloud-computing-guide-for-researchers-faster-better-more-reproducible-research/">
+article from Microsoft Azure</a> or
+<a href="https://www.jisc.ac.uk/guides/cloud-computing-innovation-gdpr-and-you">
+this overview</a> to be good starting points.
+
+<p>Currently, the service uses Microsoft Azure as a cloud provider for the hosts
+it creates.
 
 <dl class="accordion">
-   <dt class="accordion__title"><a href="#">Creating a new host</a>
-   </dt>
-   <dd class="accordion__description">
-     <p>Once you are logged in, you can click the button to add a new host. This will
-     first show you some information about limitations of the service, primarily
-     related to privacy and personal data. <strong>Please take this information into
-     account!</strong> If you agree that your use is suitable, you will be taken to
-     a form where you can describe the resource that you would like to create.
+  <dt class="accordion__title"><a href="#">Creating a new host</a>
+  </dt>
+  <dd class="accordion__description">
+    <p>Once you are logged in, you can click the button to add a new host. This will
+    first show you some information about limitations of the service, primarily
+    related to privacy and personal data. <strong>Please take this information into
+    account!</strong> If you agree that your use is suitable, you will be taken to
+    a form where you can describe the resource that you would like to create.
 
-     <p>Most of the fields in the form are self-explanatory (and you can see more
-     detailed explanations if you hover on the information icon next to each field).
-     However, the following comments may be useful:
-     - The hosts created this way are accessible under the UCL domain. The actual URL
-       will depend on the name you give in the form.
-       For example, a host named <em>myhost</em> will be accessible at
-       <em>myhost.cloudlabs.rc.ucl.ac.uk</em>
-     - You can choose to login to the host through either a username and password, or
-       through SSH authentication. For the latter, you will first need to add your
-       public key to your profile (click on your name from the top-right of any page).
-     - We assume that the code is in a git repository that is publically available
-       (e.g. on GitHub, Bitbucket or a similar service). We also assume that there is
-       a Dockerfile describing how the application should be launched. If either of
-       these assumptions is not true, put in a random value in the appropriate field,
-       and choose the option to customise the setup script. You will then be able to
-       tailor the configuration of the host to your particular requirements.
-     - If your application needs on a specific port to be open, you can specify that
-       in the form.
-     <p><strong>TODO:</strong> General comment about default script and customising it
+    <p>Most of the fields in the form are self-explanatory (and you can see more
+    detailed explanations if you hover on the information icon next to each field).
+    However, the following comments may be useful:
+    <ul>
+      <li>
+        The hosts created this way are accessible under the UCL domain. The actual URL
+        will depend on the name you give in the form.
+        For example, a host named <em>myhost</em> will be accessible at
+        <em>myhost.cloudlabs.rc.ucl.ac.uk</em>
+      </li>
+      <li>
+        You can choose to login to the host through either a username and password, or
+        through SSH authentication. For the latter, you will first need to add your
+        public key to your profile (click on your name from the top-right of any page).
+      </li>
+      <li>
+        We assume that the code is in a git repository that is publically available
+        (e.g. on GitHub, Bitbucket or a similar service). We also assume that there is
+        a Dockerfile describing how the application should be launched. If either of
+        these assumptions is not true, put in a random value in the appropriate field,
+        and choose the option to customise the setup script. You will then be able to
+        tailor the configuration of the host to your particular requirements.
+      </li>
+      <li>
+        If your application needs on a specific port to be open, you can specify that
+        in the form.
+      </li>
+    <p><strong>TODO:</strong> General comment about default script and customising it.
+    Mention that more elaborate setup will incur a longer deployment time.
 
-     <p>Once the host has been fully specified, it will take a few minutes to be created.
-     You will be returned to the main page, from where you can track its progress.
-   </dd>
+    <p>Once the host has been fully specified, it will take a few minutes to be created.
+    You will be returned to the main page, from where you can track its progress.
+  </dd>
 
-   <dt class="accordion__title"><a href="#">The dashboard and controlling hosts</a>
-   </dt>
-   <dd class="accordion__description">
-     <p>The dashboard on the main page lists all hosts you have created, and lets you
-     stop and restart them, edit their configuration and see information about them.
-     You can also view information about hosts which are still being deployed by
-     clicking on the "Deploying" status, which will display the host's log.
+  <dt class="accordion__title"><a href="#">The dashboard and controlling hosts</a>
+  </dt>
+  <dd class="accordion__description">
+    <p>The dashboard on the <a href="{{ url_for('main.index') }}">main page</a>
+    lists all hosts you have created, and lets you
+    stop and restart them, edit their configuration and see information about them.
+    You can also view information about hosts which are still being deployed by
+    clicking on the "Deploying" status, which will display the host's log.
 
-     <p>Hosts incur a charge while they are running, even if you are not actively
-     using them. Once you no longer require a machine, think about stopping it. You
-     can also delete hosts that you are no longer interested in, if you want to keep
-     your dashboard cleaner.
-   </dd>
+    <p>Hosts incur a charge while they are running, even if you are not actively
+    using them. Once you no longer require a machine, think about stopping it. You
+    can also delete hosts that you are no longer interested in, if you want to keep
+    your dashboard cleaner.
+  </dd>
 
-   <dt class="accordion__title"><a href="#">Getting help</a>
-   </dt>
-   <dd class="accordion__description">
-     <p>Note that <strong>the service is in active development!</strong> We are still
-     adding features, and you may sometimes find that things are not fully working as
-     expected. If you do notice something odd or encounter any problems, please let
-     us know! We are also very interested in your feedback about the service, any
-     changes you think are useful, and what features you would like to see added. You
-     can <a href="mailto:rc-softdev@ucl.ac.uk">contact us by email</a> - don't
-     hesitate to get in touch!
-   </dd>
+  <dt class="accordion__title"><a href="#">Getting help</a>
+  </dt>
+  <dd class="accordion__description">
+    <p>Note that <strong>the service is in active development!</strong> We are still
+    adding features, and you may sometimes find that things are not fully working as
+    expected. If you do notice something odd or encounter any problems, please let
+    us know! We are also very interested in your feedback about the service, any
+    changes you think are useful, and what features you would like to see added. You
+    can <a href="mailto:rc-softdev@ucl.ac.uk">contact us by email</a> - don't
+    hesitate to get in touch!
+  </dd>
 
 {% endblock content %}
