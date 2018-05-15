@@ -30,7 +30,7 @@ haikunator==2.1.0
 idna==2.6                 # via cryptography
 isodate==0.6.0            # via msrest
 itsdangerous==0.24        # via flask
-jinja2==2.9.6             # via flask
+jinja2==2.9.6
 keyring==10.5.0           # via msrestazure
 kombu==4.1.0              # via celery
 mako==1.0.7               # via alembic
