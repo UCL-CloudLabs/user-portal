@@ -20,7 +20,7 @@
   </tr>
   {% for host in user.hosts %}
     <tr>
-      <td>{{ host.label }}</td>
+      <td><span title="{{ host.description }}">{{ host.label }}</span></td>
       <td><a href="{{ host.link }}">{{ host.basic_url }}</a></td>
       <td>
         {%- if host.status in [HostStatus.deploying, HostStatus.error, HostStatus.destroying] -%}
