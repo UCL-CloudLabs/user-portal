@@ -65,8 +65,16 @@ it creates.
         If your application needs on a specific port to be open, you can specify that
         in the form.
       </li>
-    <p><strong>TODO:</strong> General comment about default script and customising it.
-    Mention that more elaborate setup will incur a longer deployment time.
+    </ul>
+    <p>A note about the setup script: Once the host has been created on the cloud,
+    this service will connect to it and run various instructions, according to
+    the information you have provided on the form. By default, this will try to
+    clone a git repository, then run docker, exposing the specified port. If you
+    want to change any aspect of that, select the "Customise setup script" button.
+    From there, you will be able to add, modify or remove any of the instructions
+    as required. Keep in mind that making this setup script more elaborate may
+    incur a longer deployment time, especially if you have to install many
+    requirements.
 
     <p>Once the host has been fully specified, it will take a few minutes to be created.
     You will be returned to the main page, from where you can track its progress.
