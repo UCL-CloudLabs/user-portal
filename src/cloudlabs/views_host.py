@@ -121,16 +121,13 @@ def control(id):
     host = Host.query.get_or_404(id)
     abort_if_not_owner(host)
     if action == 'stop':
-        stop(host)
-        return redirect(url_for('main.index'))
+        task_id = stop(host)
     elif action == 'start':
-        start(host)
-        return redirect(url_for('main.index'))
+        task_id = start(host)
     elif action == 'restart':
-        restart(host)
-        return redirect(url_for('main.index'))
-    return render_template('not_implemented.html', host=host,
-                           thing='Running hosts')
+        task_id = restart(host)
+    log_task(id, action, task_id)
+    return redirect(url_for('main.index'))
 
 
 @blueprint.route('/host/<int:id>/download')
@@ -163,6 +160,8 @@ def deploy(host):
         args=(host.id,))
     # Record the new deployment so we can keep track of it
     host.update(task=result.id)
+    logger.debug("Deployment of host %s has been assigned task %s",
+                 host.id, result.id)
     flash('Host "{}" deployment scheduled'.format(host.label), 'success')
 
 
@@ -194,32 +193,39 @@ def destroy(host):
 def stop(host):
     """Signals Celery to stop a VM in the background."""
     celery = create_celery(current_app)
-    celery.send_task(
-            'cloudlabs.stop',
-            args=(host.id,))
+    result = celery.send_task(
+                'cloudlabs.stop',
+                args=(host.id,))
     flash('Host "{}" stopping scheduled'.format(host.label), 'success')
+    return result.id
 
 
 def start(host):
     """Signals Celery to start a VM in the background."""
     celery = create_celery(current_app)
-    celery.send_task(
-            'cloudlabs.start',
-            args=(host.id,))
+    result = celery.send_task(
+                'cloudlabs.start',
+                args=(host.id,))
     flash('Host "{}" start scheduled'.format(host.label), 'success')
+    return result.id
 
 
 def restart(host):
     """Signals Celery to restart a VM in the background."""
     celery = create_celery(current_app)
-    celery.send_task(
-            'cloudlabs.restart',
-            args=(host.id,))
+    result = celery.send_task(
+                'cloudlabs.restart',
+                args=(host.id,))
     flash('Host "{}" restart scheduled'.format(host.label), 'success')
+    return result.id
 
 
 def log_action(host, action):
     logger.info("%s asked to %s host %s", g.user.ucl_id, action, host)
+
+
+def log_task(host, action, task):
+    logger.debug("Task %s has been created to %s host %s", task, action, host)
 
 
 def abort_if_not_owner(host):
