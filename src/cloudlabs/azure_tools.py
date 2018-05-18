@@ -1,5 +1,8 @@
 """Miscelanneous methods for working with Azure."""
 
+from functools import wraps
+import logging
+
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.compute import ComputeManagementClient
 from azure.mgmt.resource import ResourceManagementClient
@@ -7,6 +10,22 @@ from azure.mgmt.resource import ResourceManagementClient
 from .host_status import HostStatus
 from .names import group_name, vm_name
 from .secrets import Secrets
+
+
+logger = logging.getLogger("cloudlabs.azure")
+
+
+def log(action_name):
+    """Logs the start and end of a method, referencing the given action name."""
+    def wrap(f):
+        @wraps(f)
+        def helper(self, host):
+            logger.debug("Asking Azure to %s host %s", action_name, host.id)
+            f(self, host)
+            logger.debug("Azure completed request to %s host %s",
+                         action_name, host.id)
+        return helper
+    return wrap
 
 
 class AzureTools(object):
@@ -23,16 +42,19 @@ class AzureTools(object):
     def __init__(self):
         self.refresh()
 
+    @log("start")
     def start_VM(self, host):
         """Start an Azure VM."""
         action = self.cmc.virtual_machines.start(group_name(host), vm_name(host))
         action.wait()
 
+    @log("restart")
     def restart_VM(self, host):
         """Restart an already running Azure VM.."""
         action = self.cmc.virtual_machines.restart(group_name(host), vm_name(host))
         action.wait()
 
+    @log("stop")
     def stop_VM(self, host):
         """Deallocate an Azure VM."""
         # Stop the VM: the call to deallocate returns immediately, and then we
@@ -42,6 +64,7 @@ class AzureTools(object):
         action = self.cmc.virtual_machines.deallocate(group_name(host), vm_name(host))
         action.wait()
 
+    @log("delete the resource group of")
     def delete_VM(self, host):
         """Delete an Azure VM and all associated resources."""
         action = self.rmc.resource_groups.delete(group_name(host))
@@ -49,6 +72,9 @@ class AzureTools(object):
 
     def refresh(self):
         """Set up or refresh the authentication info and management clients."""
+        # The below is logged every time the periodic status refresh task is run,
+        # which tends to take over the log. Disabling for now.
+        # logger.info("Refreshing Azure credentials")
         self.credentials, self.subscription_id = self._get_credentials()
         self.cmc = ComputeManagementClient(self.credentials, self.subscription_id)
         self.rmc = ResourceManagementClient(self.credentials, self.subscription_id)

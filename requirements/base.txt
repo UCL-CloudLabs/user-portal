@@ -40,11 +40,13 @@ msrestazure==0.4.18       # via azure-mgmt-compute, azure-mgmt-resource
 oauthlib==2.0.6           # via requests-oauthlib
 pathlib==1.0.1
 psycopg2==2.7.1
+pyaml==17.12.1
 pycparser==2.18           # via cffi
 pyjwt==1.5.3              # via adal
 python-dateutil==2.6.1    # via adal, alembic
 python-editor==1.0.3      # via alembic
 pytz==2017.2              # via celery
+pyyaml==3.12              # via pyaml
 requests-oauthlib==0.8.0  # via msrest
 requests==2.14.2
 six==1.10.0               # via cryptography, flask-sso, isodate, python-dateutil

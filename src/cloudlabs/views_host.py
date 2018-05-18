@@ -1,3 +1,4 @@
+import logging
 
 from flask import (
     abort,
@@ -21,14 +22,16 @@ from .utils import login_required, role_required
 
 
 blueprint = Blueprint('host', __name__)
+logger = logging.getLogger("cloudlabs.hosts")
+admin_logger = logging.getLogger("cloudlabs.admin")
 
 
 @blueprint.route('/host/<int:id>')
 @login_required
 def info(id):
+    log_action(id, "view info on")
     host = Host.query.get_or_404(id)
-    if host.user is not g.user:
-        abort(404)
+    abort_if_not_owner(host)
     return render_template('host_info.html', host=host)
 
 
@@ -72,8 +75,7 @@ def customise_setup():
     if form.validate_on_submit():
         # Save the updated setup script
         host = Host.query.get_or_404(form.id.data)
-        if host.user is not g.user:
-            abort(404)
+        abort_if_not_owner(host)
         host.update(setup_script=form.setup_script.data)
         deploy(host)
         flash('Host "{}" added'.format(host.label), 'success')
@@ -84,9 +86,9 @@ def customise_setup():
 @blueprint.route('/host/<int:id>/edit')
 @role_required(Roles.owner)
 def edit(id):
+    log_action(id, "edit")
     host = Host.query.get_or_404(id)
-    if host.user is not g.user:
-        abort(404)
+    abort_if_not_owner(host)
     return render_template('not_implemented.html', host=host,
                            thing='Editing hosts')
 
@@ -94,12 +96,13 @@ def edit(id):
 @blueprint.route('/host/<int:id>/delete')
 @role_required(Roles.owner)
 def delete(id):
+    log_action(id, "delete")
     host = Host.query.get_or_404(id)
-    if host.user is not g.user:
-        abort(404)
+    abort_if_not_owner(host)
     label = host.label
     if host.status in [HostStatus.defining, HostStatus.error]:
         host.delete()
+        logger.info("Host %s deleted from database", id)
         flash('Virtual machine "{}" deleted'.format(label), 'success')
     else:
         destroy(host)
@@ -111,31 +114,28 @@ def delete(id):
 def control(id):
     """Also takes `action` as a query parameter."""
     action = request.args.get('action', '')
+    log_action(id, action)
     if action not in {'stop', 'start', 'restart'}:
         flash('Unsupported action "{}"'.format(action), 'error')
         return redirect(url_for('main.index'))
     host = Host.query.get_or_404(id)
-    if host.user is not g.user:
-        abort(404)
+    abort_if_not_owner(host)
     if action == 'stop':
-        stop(host)
-        return redirect(url_for('main.index'))
+        task_id = stop(host)
     elif action == 'start':
-        start(host)
-        return redirect(url_for('main.index'))
+        task_id = start(host)
     elif action == 'restart':
-        restart(host)
-        return redirect(url_for('main.index'))
-    return render_template('not_implemented.html', host=host,
-                           thing='Running hosts')
+        task_id = restart(host)
+    log_task(id, action, task_id)
+    return redirect(url_for('main.index'))
 
 
 @blueprint.route('/host/<int:id>/download')
 @role_required(Roles.owner)
 def download(id):
+    log_action(id, "download")
     host = Host.query.get_or_404(id)
-    if host.user is not g.user:
-        abort(404)
+    abort_if_not_owner(host)
     return render_template('not_implemented.html', host=host,
                            thing='Downloading host images')
 
@@ -143,14 +143,16 @@ def download(id):
 @blueprint.route('/host/<int:id>/view_log')
 @role_required(Roles.owner)
 def view_log(id):
+    log_action(id, "view the log of")
     host = Host.query.get_or_404(id)
-    if host.user is not g.user:
-        abort(404)
+    abort_if_not_owner(host)
     return render_template('deploy_log.html', host=host)
 
 
 def deploy(host):
     """Signals Celery to launch a VM in the background."""
+    logger.info("%s asked to deploy new host %s (%s)",
+                g.user.ucl_id, host.id, host.base_name)
     host.update(status=HostStatus.deploying)
     celery = create_celery(current_app)
     result = celery.send_task(
@@ -158,6 +160,8 @@ def deploy(host):
         args=(host.id,))
     # Record the new deployment so we can keep track of it
     host.update(task=result.id)
+    logger.debug("Deployment of host %s has been assigned task %s",
+                 host.id, result.id)
     flash('Host "{}" deployment scheduled'.format(host.label), 'success')
 
 
@@ -171,12 +175,15 @@ def destroy(host):
         # deletion process (interrupting the deployment).
         if host.task:
             hard_delete = True
-            print("Deployment in progress, will revoke task!")  # DEBUG
-            print("Revoking " + host.task)  # DEBUG
+            logger.info(
+                "Deployment of host %s in progress, will revoke task %s.",
+                host.id,
+                host.task)
             celery.control.revoke(host.task, terminate=True)
         else:
             hard_delete = False
-        print("Will send destroy task (hard = {})".format(hard_delete))
+        logger.info("Sending destroy task for host %s (hard = %s)",
+                    host.id, hard_delete)
         celery.send_task(
             'cloudlabs.destroy',
             args=(host.id, hard_delete))
@@ -186,25 +193,45 @@ def destroy(host):
 def stop(host):
     """Signals Celery to stop a VM in the background."""
     celery = create_celery(current_app)
-    celery.send_task(
-            'cloudlabs.stop',
-            args=(host.id,))
+    result = celery.send_task(
+                'cloudlabs.stop',
+                args=(host.id,))
     flash('Host "{}" stopping scheduled'.format(host.label), 'success')
+    return result.id
 
 
 def start(host):
     """Signals Celery to start a VM in the background."""
     celery = create_celery(current_app)
-    celery.send_task(
-            'cloudlabs.start',
-            args=(host.id,))
+    result = celery.send_task(
+                'cloudlabs.start',
+                args=(host.id,))
     flash('Host "{}" start scheduled'.format(host.label), 'success')
+    return result.id
 
 
 def restart(host):
     """Signals Celery to restart a VM in the background."""
     celery = create_celery(current_app)
-    celery.send_task(
-            'cloudlabs.restart',
-            args=(host.id,))
+    result = celery.send_task(
+                'cloudlabs.restart',
+                args=(host.id,))
     flash('Host "{}" restart scheduled'.format(host.label), 'success')
+    return result.id
+
+
+def log_action(host, action):
+    logger.info("%s asked to %s host %s", g.user.ucl_id, action, host)
+
+
+def log_task(host, action, task):
+    logger.debug("Task %s has been created to %s host %s", task, action, host)
+
+
+def abort_if_not_owner(host):
+    if g.user is not host.user:
+        admin_logger.warning(
+            "%s tried to perform an operation on host %d but did not have access",
+            g.user.ucl_id,
+            host.id)
+        abort(404)

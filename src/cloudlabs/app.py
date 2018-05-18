@@ -1,5 +1,7 @@
+from logging.config import dictConfig
 
 from flask import Flask
+import yaml
 
 from cloudlabs import (
     context_processors,
@@ -22,6 +24,10 @@ def create_app(config_name=None):
         config_name = os.getenv('APP_SETTINGS', 'cloudlabs.config.Config')
     app = Flask(__name__)
     app.config.from_object(config_name)
+    # Configure logging
+    with open(app.config["LOG_CONFIG_FILE"], "r") as config_file:
+        config = yaml.safe_load(config_file.read())
+    dictConfig(config)
     db.init_app(app)
     migrate.init_app(app, db)
     context_processors.setup(app)
