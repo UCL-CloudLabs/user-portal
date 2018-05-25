@@ -25,6 +25,7 @@ output_statuses = [
 ]
 
 
+@pytest.mark.offline
 @pytest.mark.parametrize("statuses,result", zip(input_statuses, output_statuses))
 def test_parse_statuses(statuses, result):
     """Test that a VM's status as retrieved from Azure is correctly interpreted."""

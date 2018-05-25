@@ -91,6 +91,7 @@ class TestDeployer:
         yield host
         deployer.destroy(host)
 
+    @pytest.mark.offline
     def test_deployer_config(self, app, deployer):
         '''
         Check the path where the terraform files are is setup correctly.
