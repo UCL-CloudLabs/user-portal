@@ -100,7 +100,7 @@ def delete(id):
     host = Host.query.get_or_404(id)
     abort_if_not_owner(host)
     label = host.label
-    if host.status in [HostStatus.defining, HostStatus.error]:
+    if host.status in [HostStatus.defining]:
         host.delete()
         logger.info("Host %s deleted from database", id)
         flash('Virtual machine "{}" deleted'.format(label), 'success')
@@ -180,6 +180,15 @@ def destroy(host):
                 host.id,
                 host.task)
             celery.control.revoke(host.task, terminate=True)
+        # Otherwise, if the host is in the error state, we will delete its
+        # entire resource group directly. This is(?) safer than doing it through
+        # Terraform, because the deployment may have stopped at the VM stage,
+        # which could(?) cause problems with Terraform.
+        elif host.status == HostStatus.error:
+            hard_delete = True
+            logger.info(
+                "Host %s was in error state, will delete its whole group.",
+                host.id)
         else:
             hard_delete = False
         logger.info("Sending destroy task for host %s (hard = %s)",
