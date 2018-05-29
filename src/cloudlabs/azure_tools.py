@@ -6,6 +6,7 @@ import logging
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.compute import ComputeManagementClient
 from azure.mgmt.resource import ResourceManagementClient
+from msrestazure.azure_exceptions import CloudError
 
 from .host_status import HostStatus
 from .names import group_name, vm_name
@@ -69,6 +70,14 @@ class AzureTools(object):
         """Delete an Azure VM and all associated resources."""
         action = self.rmc.resource_groups.delete(group_name(host))
         action.wait()
+
+    def group_exists(self, group_name):
+        """Check whether a resource group with the given name exists."""
+        try:
+            self.rmc.resource_groups.get(group_name)
+            return True
+        except CloudError:
+            return False
 
     def refresh(self):
         """Set up or refresh the authentication info and management clients."""
