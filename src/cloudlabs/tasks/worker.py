@@ -147,6 +147,7 @@ def refresh_status():
         # may be running or nonexistent, but we don't want to display that to
         # the owner just yet.
         # TODO maybe exclude error state too? (potentially set during deployment)
-        if host.status not in [HostStatus.defining, HostStatus.deploying]:
+        if host.status not in [HostStatus.defining, HostStatus.deploying,
+                               HostStatus.destroying]:
             status = tools.get_status(host)
             host.update(status=status)
