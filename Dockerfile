@@ -8,7 +8,7 @@ RUN apt-get --yes install git python3-pip unzip curl
 # Get the code and install dependencies
 RUN git clone https://github.com/UCL-CloudLabs/user-portal.git
 WORKDIR user-portal
-RUN pip install -r requirements/base.txt
+RUN pip3 install -r requirements/base.txt
 
 # TODO Change secrets.py!
 
