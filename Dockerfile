@@ -15,5 +15,4 @@ RUN pip3 install -r requirements/base.txt
 # Install Terraform
 WORKDIR /
 RUN curl -sSL -o terraform.zip "https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip"
-RUN unzip terraform.zip
-COPY terraform /usr/local/bin/terraform
+RUN unzip terraform.zip -d /usr/local/bin/
