@@ -3,7 +3,7 @@ FROM ubuntu:xenial
 # Install system packages
 RUN apt-get update --yes && apt-get --yes upgrade
 RUN apt-get --yes install apache2 libapache2-mod-shib2 libapache2-mod-wsgi-py3
-RUN apt-get --yes install git python3-pip unzip
+RUN apt-get --yes install git python3-pip unzip curl
 
 # Get the code and install dependencies
 RUN git clone https://github.com/UCL-CloudLabs/user-portal.git
