@@ -3,7 +3,7 @@ FROM ubuntu:xenial
 # Install system packages
 RUN apt-get update --yes && apt-get --yes upgrade
 RUN apt-get --yes install apache2 libapache2-mod-shib2 libapache2-mod-wsgi-py3
-RUN apt-get --yes install git python3-pip unzip curl
+RUN apt-get --yes install git python3-pip unzip curl postgresql
 
 # Get the code and install dependencies
 RUN git clone https://github.com/UCL-CloudLabs/user-portal.git
@@ -42,10 +42,28 @@ RUN a2enmod wsgi shib2 ssl rewrite headers
 RUN a2ensite default-ssl
 # RUN service apache2 restart
 
-# Configure CloudLabs staging environment
+# Configure CloudLabs's Flask app
+WORKDIR /
+RUN cp CloudLabs/secrets/secrets.py user-portal/src/cloudlabs/
+WORKDIR /user-portal/src
 ENV FLASK_APP autoapp.py
 ENV FLASK_DEBUG True
 ENV APP_SETTINGS cloudlabs.config.DevConfig
+# These two are needed by flask db upgrade
+ENV LC_ALL C.UTF-8
+ENV LANG C.UTF-8
 
-WORKDIR /
-RUN cp CloudLabs/secrets/secrets.py user-portal/src/cloudlabs/ 
+
+# Configure CloudLabs' portal DB
+USER postgres
+RUN /etc/init.d/postgresql start &&\
+    psql --command "CREATE USER root WITH SUPERUSER PASSWORD 'docker';" &&\
+    createdb --echo cloudlabs &&\
+    flask db upgrade
+USER root
+
+EXPOSE 5000
+
+CMD /etc/init.d/postgresql start && \
+     rabbitmq-server -detached &&\
+     (celery worker -A biopharma.server.tasks.worker.celery --loglevel=info &) 
