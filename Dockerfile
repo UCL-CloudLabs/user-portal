@@ -29,7 +29,6 @@ ENV ENV staging
 # and then we can copy the directory into the container
 COPY CloudLabs CloudLabs
 WORKDIR CloudLabs
-RUN ls secrets
 RUN python3 make_conf_files.py
 RUN cp secrets/cloudlabs_rc_ucl_ac_uk.crt /etc/ssl/certs/
 RUN cp secrets/QuoVadisOVchain.pem /etc/ssl/certs/
@@ -41,4 +40,12 @@ RUN chmod 644 /etc/ssl/certs/cloudlabs* /etc/ssl/certs/QuoVadisOV*
 RUN adduser --system --disabled-login --group cloudlabs-wsgi
 RUN a2enmod wsgi shib2 ssl rewrite headers
 RUN a2ensite default-ssl
-RUN service apache2 restart
+# RUN service apache2 restart
+
+# Configure CloudLabs staging environment
+ENV FLASK_APP autoapp.py
+ENV FLASK_DEBUG True
+ENV APP_SETTINGS cloudlabs.config.DevConfig
+
+WORKDIR /
+RUN cp CloudLabs/secrets/secrets.py user-portal/src/cloudlabs/ 
