@@ -6,7 +6,7 @@ RUN apt-get --yes install apache2 libapache2-mod-shib2 libapache2-mod-wsgi-py3
 RUN apt-get --yes install git python3-pip unzip
 
 # Get the code and install dependencies
-RUN git clone git@github.com:UCL-CloudLabs/user-portal.git
+RUN git clone https://github.com/UCL-CloudLabs/user-portal.git
 WORKDIR user-portal
 RUN pip install -r requirements/base.txt
 
