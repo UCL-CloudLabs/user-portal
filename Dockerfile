@@ -61,6 +61,12 @@ USER root
 
 EXPOSE 5000
 
+ENV RABBITMQ_NODE_IP_ADDRESS 127.0.0.1
+
+RUN /etc/init.d/postgresql start && \
+    psql -d cloudlabs -c "insert into user_roles (name, user_id) values ('admin', 1);"
+
 CMD /etc/init.d/postgresql start && \
-     rabbitmq-server -detached &&\
-     (celery worker -A biopharma.server.tasks.worker.celery --loglevel=info &)
+    rabbitmq-server -detached && \
+    (celery beat -A cloudlabs.tasks.worker.celery --loglevel=info &) && \
+    (celery worker -A cloudlabs.tasks.worker.celery --loglevel=info --statedb=worker_state &)
