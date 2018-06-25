@@ -29,13 +29,14 @@ ENV ENV staging
 # and then we can copy the directory into the container
 COPY CloudLabs CloudLabs
 WORKDIR CloudLabs
-RUN python make_conf_files.py
-COPY secrets/cloudlabs_rc_ucl_ac_uk.crt /etc/ssl/certs/
-COPY secrets/QuoVadisOVchain.pem /etc/ssl/certs/
-COPY conf_files/{000-default.conf,default-ssl.conf} /etc/apache2/sites-available/
+RUN ls secrets
+RUN python3 make_conf_files.py
+RUN cp secrets/cloudlabs_rc_ucl_ac_uk.crt /etc/ssl/certs/
+RUN cp secrets/QuoVadisOVchain.pem /etc/ssl/certs/
+RUN cp conf_files/000-default.conf conf_files/default-ssl.conf  /etc/apache2/sites-available/
 
 RUN chmod 600 /etc/ssl/private/staging.cloudlabs.key
-RUN chmod 644 /etc/ssl/certs/{cloudlabs,QuoVadisOV}*
+RUN chmod 644 /etc/ssl/certs/cloudlabs* /etc/ssl/certs/QuoVadisOV*
 # Create a separate unprivileged user for the WSGI daemon to run as
 RUN adduser --system --disabled-login --group cloudlabs-wsgi
 RUN a2enmod wsgi shib2 ssl rewrite headers
