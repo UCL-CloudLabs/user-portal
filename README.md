@@ -201,6 +201,7 @@ sudo -u cloudlabs-wsgi -E -H -- `which flask` db upgrade
 
 Set up Celery & RabbitMQ:
 ```bash
+cd
 sudo apt-get install rabbitmq-server
 sudo cp CloudLabs/conf_files/rabbitmq-server /etc/default/rabbitmq-server
 sudo cp CloudLabs/conf_files/celery-init /etc/init.d/celeryd
