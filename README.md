@@ -196,7 +196,7 @@ export FLASK_APP=autoapp.py
 export DATABASE_URL=postgresql:///cloudlabs
 cd ~/user-portal/src
 source ../venv/bin/activate
-sudo -u cloudlabs-wsgi -E -- `which flask` db upgrade
+sudo -u cloudlabs-wsgi -E -H -- `which flask` db upgrade
 ```
 
 Set up Celery & RabbitMQ:

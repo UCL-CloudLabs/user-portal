@@ -65,5 +65,8 @@ class DevConfig(Config):
         'PRIVATE_SSH_KEY_PATH',
         '~/build/UCL-CloudLabs/user-portal/src/test/id_rsa_travis_azure')
 
+    # Logging configuration file
+    LOG_CONFIG_FILE = 'cloudlabs/dev_log_config.yaml'
+
     # How many worker processes to run
     CELERY_WORKER_CONCURRENCY = 2
