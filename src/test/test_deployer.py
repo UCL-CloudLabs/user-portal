@@ -81,7 +81,7 @@ class TestDeployer:
     #  'sku': '2012-R2-Datacenter',
     #  'version': 'latest'},
     @pytest.fixture()
-    def os(self, request):
+    def os(self):
         os.publisher = 'Canonical'
         os.offer = 'UbuntuServer'
         os.sku = '16.04-LTS'
@@ -91,7 +91,7 @@ class TestDeployer:
     @pytest.fixture(params=['Standard_A1m_v2',
                             'Standard_A4_v2',
                             'Standard_A4m_v2'])
-    def vm_type(self):
+    def vm_type(self, request):
         return request.param
 
     @pytest.fixture
