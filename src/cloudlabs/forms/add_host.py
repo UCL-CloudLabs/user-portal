@@ -38,7 +38,7 @@ class AddHostForm(FlaskForm):
     vm_size = SelectField(
         'VM size',
         description='',
-        choices=[('Standard_A1m_v2', '1RAM, Size, CPU'),
+        choices=[('Standard_A1_v2', '1RAM, Size, CPU'),
                  ('Standard_A4_v2', '2RAM, Size, CPU'),
                  ('Standard_A4m_v2', '3RAM, Size, CPU')])
 
