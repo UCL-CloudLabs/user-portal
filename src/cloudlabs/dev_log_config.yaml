@@ -20,7 +20,7 @@ handlers:
 
         formatter: default
 
-        filename: ~/cloudlabs.log
+        filename: cloudlabs.log
 
         maxBytes: 5242880 # 5MB
 
