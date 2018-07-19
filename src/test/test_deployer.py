@@ -91,10 +91,10 @@ class TestDeployer:
     @pytest.fixture()
     def vm_type(self):
         '''
-        Test on Standard_A7: 8 cores, 56GB RAM, £1.1/hour.
+        Test on A8m_v2: 8 cores, 64GB RAM.
         TODO: Test with the machines we choose to offer on new VM web form.
         '''
-        return 'Standard_A7'
+        return 'Standard_A8m_v2'
 
     @pytest.fixture
     def host(self, app, deployer, dnsname, public_key, private_key_path,
