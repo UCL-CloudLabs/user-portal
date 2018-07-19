@@ -80,11 +80,11 @@ class TestDeployer:
     #  'offer': 'WindowsServer',
     #  'sku': '2012-R2-Datacenter',
     #  'version': 'latest'},
-    @pytest.fixture(params=['14.04.5-LTS', '16.04-LTS', '17.10'])
+    @pytest.fixture()
     def os(self, request):
         os.publisher = 'Canonical'
         os.offer = 'UbuntuServer'
-        os.sku = request.param
+        os.sku = '16.04-LTS'
         os.version = 'latest'
         return os
 
