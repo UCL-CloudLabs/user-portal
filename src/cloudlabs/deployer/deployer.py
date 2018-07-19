@@ -1,14 +1,18 @@
-import json
+import logging
 import os
+from pathlib import Path
 import subprocess
+from tempfile import TemporaryDirectory
+
 from flask import current_app
 from jinja2 import Environment, FileSystemLoader
-from pathlib import Path
-from tempfile import TemporaryDirectory
 
 from ..azure_tools import AzureTools
 from ..host_status import HostStatus
 from ..names import resource_names
+
+
+logger = logging.getLogger("cloudlabs.deployer")
 
 
 class Deployer:
@@ -83,8 +87,11 @@ class Deployer:
         process = self._run_cmd('apply', host, args=['-auto-approve=true'])
         if process.returncode == 0:
             self._record_result(host, HostStatus.running)
+            logger.info("Host %s successfully deployed", host.id)
         else:
             self._record_result(host, HostStatus.error, 'apply', process.returncode)
+            logger.error("Deployment of host %s failed (Terraform return code %s)",
+                         host.id, process.returncode)
 
     def _record_result(self, host, status, command=None, return_code=None):
         """Record the result of a Terraform run in the DB.
@@ -114,6 +121,7 @@ class Deployer:
         '''Run a terraform command for the given host.
 
         Will append the command's output & stderr to the host's deploy_log.
+        Will also forward stderr to the log.
 
         :param name: the name of the Terraform command to run
         :param host: the host object being deployed
@@ -123,10 +131,16 @@ class Deployer:
         process = subprocess.Popen(['terraform', name, '-no-color'] + args,
                                    cwd=self.tempdir.name,
                                    stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT)
+                                   stderr=subprocess.PIPE)
+        logger.info('Running command "%s" for host %s',
+                    " ".join(process.args), host.id)
         for line in process.stdout:
             print(line.decode('utf-8'), end='')
             host.update(deploy_log=host.deploy_log + line.decode('utf-8'))
+        for line in process.stderr:
+            print(line.decode('utf-8'), end='')
+            host.update(deploy_log=host.deploy_log + line.decode('utf-8'))
+            logger.error("(TF for host %s) %s", host.id, line.decode('utf-8').strip('\n'))
         process.wait()
         return process
 
@@ -161,8 +175,11 @@ class Deployer:
         process = self._run_cmd('destroy', host, args=['-force'])
         if process.returncode == 0:
             self._record_result(host, HostStatus.defining)
+            logger.info("Host %s successfully destroyed", host.id)
         else:
             self._record_result(host, HostStatus.error, 'destroy', process.returncode)
+            logger.info("Destruction of host %s failed (Terraform return code %s)",
+                        host.id, process.returncode)
 
     def stop(self, host):
         """Stop a host that is running, but do not remove it from the cloud.
@@ -199,3 +216,4 @@ class Deployer:
         self._record_result(host, HostStatus.defining)
         # remove the deploying task's ID from the database
         host.update(task=None)
+        logger.info("Host %s and all its resources deleted", host.id)

@@ -55,4 +55,4 @@ def vm_name(host):
 
 def azure_url(dns_name):
     """Return the full URL of a VM hosted on Azure given its DNS name."""
-    return '{}.ukwest.cloudapp.azure.com'.format(dns_name)
+    return '{}.uksouth.cloudapp.azure.com'.format(dns_name)
