@@ -11,6 +11,7 @@ import wtforms.validators as v
 from ..models import Host, SshKey
 
 
+
 class AddHostForm(FlaskForm):
     """Form for adding a new virtual host."""
 
@@ -33,6 +34,13 @@ class AddHostForm(FlaskForm):
                     'included here.',
         validators=[v.Length(min=1, max=Host.dns_name.type.length)])
     # TODO adapt max length to exclude suffixes/randomisation?
+
+    vm_size = SelectField(
+        'VM size',
+        description='',
+        choices=[('Standard_A1m_v2', '1RAM, Size, CPU'),
+                 ('Standard_A4_v2', '2RAM, Size, CPU'),
+                 ('Standard_A4m_v2', '3RAM, Size, CPU')])
 
     admin_username = StringField(
         'Admin username',
