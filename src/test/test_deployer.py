@@ -88,13 +88,11 @@ class TestDeployer:
         os.version = 'latest'
         return os
 
-    @pytest.fixture()
+    @pytest.fixture(params=['Standard_A1m_v2',
+                            'Standard_A4_v2',
+                            'Standard_A4m_v2'])
     def vm_type(self):
-        '''
-        Test on A8m_v2: 8 cores, 64GB RAM.
-        TODO: Test with the machines we choose to offer on new VM web form.
-        '''
-        return 'Standard_A8m_v2'
+        return request.param
 
     @pytest.fixture
     def host(self, app, deployer, dnsname, public_key, private_key_path,
