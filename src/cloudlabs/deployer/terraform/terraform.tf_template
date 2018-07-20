@@ -102,12 +102,12 @@ resource "azurerm_storage_container" "storagecont" {
 
 # create virtual machine
 resource "azurerm_virtual_machine" "vm" {
-    name = "cloudlabsvm"
+    name = {{names.vm}}
     location = "uksouth"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     network_interface_ids = ["${azurerm_network_interface.ni.id}"]
     vm_size = "{{host.vm_type}}"
-    
+
     storage_image_reference {
         publisher = "{{host.os_publisher}}"
         offer = "{{host.os_offer}}"
