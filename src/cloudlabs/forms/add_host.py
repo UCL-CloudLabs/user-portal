@@ -11,7 +11,6 @@ import wtforms.validators as v
 from ..models import Host, SshKey
 
 
-
 class AddHostForm(FlaskForm):
     """Form for adding a new virtual host."""
 

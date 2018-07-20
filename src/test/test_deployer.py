@@ -88,7 +88,7 @@ class TestDeployer:
         os.version = 'latest'
         return os
 
-    @pytest.fixture(params=['Standard_A1m_v2',
+    @pytest.fixture(params=['Standard_A1_v2',
                             'Standard_A4_v2',
                             'Standard_A4m_v2'])
     def vm_type(self, request):
