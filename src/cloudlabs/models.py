@@ -223,8 +223,8 @@ class Host(Model):
     @property
     def os_info(self):
         info = "Unknown"
-        if host.os_offer:
-            info = "{} {} ({})".format(host.os_offer,
-                                       host.os_sku,
-                                       host.os_version)
+        if self.os_offer:
+            info = "{} {} ({})".format(self.os_offer,
+                                       self.os_sku,
+                                       self.os_version)
         return info
