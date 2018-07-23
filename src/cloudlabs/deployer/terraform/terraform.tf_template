@@ -8,6 +8,11 @@ variable "azure_client_secret" {
 variable "azure_tenant_id" {
 }
 
+# CloudLabs now needs TF > 0.11.0
+terraform {
+  required_version = "> 0.11.0"
+}
+
 # Configure Azure provider
 provider "azurerm" {
   subscription_id = "${var.azure_subscription_id}"
@@ -101,13 +106,13 @@ resource "azurerm_virtual_machine" "vm" {
     location = "uksouth"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     network_interface_ids = ["${azurerm_network_interface.ni.id}"]
-    vm_size = "Standard_A4m_v2"
+    vm_size = "{{host.vm_type}}"
 
     storage_image_reference {
-        publisher = "Canonical"
-        offer = "UbuntuServer"
-        sku = "16.04-LTS"
-        version = "latest"
+        publisher = "{{host.os_publisher}}"
+        offer = "{{host.os_offer}}"
+        sku = "{{host.os_sku}}"
+        version = "{{host.os_version}}"
     }
 
     storage_os_disk {
@@ -118,7 +123,7 @@ resource "azurerm_virtual_machine" "vm" {
     }
 
     os_profile {
-        computer_name = "{{host.dns_name}}"
+        computer_name = "${azurerm_resource_group.rg.name}"
         admin_username = "{{host.admin_username}}"
         {% if host.auth_type=="Password" %}
         admin_password = "{{host.admin_password}}"
