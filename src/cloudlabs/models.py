@@ -222,12 +222,9 @@ class Host(Model):
 
     @property
     def os_info(self):
-        info = {'type': '', 'version': ''}
-        for key, value in self.vm_info.items():
-            if key.startswith('storage_image'):
-                if key.endswith('offer'):
-                    info['type'] = value
-                elif key.endswith('sku'):
-                    info['version'] = value
-        info = (info['type'] + ' ' + info['version']).strip()
-        return info or 'Unknown'
+        info = "Unknown"
+        if host.os_offer:
+            info = "{} {} ({})".format(host.os_offer,
+                                       host.os_sku,
+                                       host.os_version)
+        return info
