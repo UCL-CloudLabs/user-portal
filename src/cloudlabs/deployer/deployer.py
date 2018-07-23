@@ -213,6 +213,25 @@ class Deployer:
             self._record_result(host, HostStatus.error, 'destroy', process.returncode)
             logger.info("Destruction of host %s failed (Terraform return code %s)",
                         host.id, process.returncode)
+        # Delete the URL mapping regardless of whether Terraform succeeded
+        try:
+            self._unmap_url(host)
+            logger.info("Host %s successfully had its URL unmapped", host.id)
+        except CloudLabsException as e:
+            logger.error("Host %s could not have its URL unmapped\n:" + e,
+                         host.id)
+
+    def _unmap_url(self, host):
+        """Undo the mapping from a UCL URL to Azure for the given Host."""
+        try:
+            keyring = dns.tsigkeyring.from_text({
+                Secrets["DNS_KEYNAME"]: Secrets["DNS_KEY"]
+            })
+            update = Update('cloudlabs.rc.ucl.ac.uk', keyring=keyring,
+                            keyalgorithm=HMAC_SHA256)
+            update.delete(host.base_name)
+        except Exception as e:
+            raise CloudLabsException("Undoing the URL mapping failed.") from e
 
     def stop(self, host):
         """Stop a host that is running, but do not remove it from the cloud.
@@ -247,6 +266,13 @@ class Deployer:
         :param host: a Host instance"""
         self.tools.delete_VM(host)
         self._record_result(host, HostStatus.defining)
-        # remove the deploying task's ID from the database
+        # Remove the deploying task's ID from the database
         host.update(task=None)
         logger.info("Host %s and all its resources deleted", host.id)
+        # Unmap the URL from the ucl.ac.uk domain
+        try:
+            self._unmap_url(host)
+            logger.info("Host %s successfully had its URL unmapped", host.id)
+        except CloudLabsException as e:
+            logger.error("Host %s could not have its URL unmapped\n:" + e,
+                         host.id)
