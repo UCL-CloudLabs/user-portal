@@ -23,6 +23,7 @@ pyaml
 
 # Azure
 azure-mgmt-compute>=3.0.1
+azure-mgmt-network
 azure-mgmt-resource
 
 # Rendering config file templates

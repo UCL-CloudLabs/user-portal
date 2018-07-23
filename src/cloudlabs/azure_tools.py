@@ -5,6 +5,7 @@ import logging
 
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.compute import ComputeManagementClient
+from azure.mgmt.network import NetworkManagementClient
 from azure.mgmt.resource import ResourceManagementClient
 
 from .host_status import HostStatus
@@ -120,6 +121,18 @@ class AzureTools(object):
                     # "stopped" still incurs charging; "deallocated" means truly off
                     return HostStatus.stopping
             return HostStatus.error  # uknown status, return error
+
+    def get_ip(self, host):
+        """Get the IP address of a host deployed on Azure as a string.
+
+        Returns None if the IP cannot be retrieved."""
+        try:
+            nmc = NetworkManagementClient(self.credentials, self.subscription_id)
+            ip = list(nmc.public_ip_addresses.list(group_name(host)))[0]
+            return ip.ip_address
+        except Exception:
+            logger.error("Could not retrieve IP of host %s", host.id)
+            return None
 
     def _get_credentials(self):
         """Get the necessary credentials for creating the management clients."""
