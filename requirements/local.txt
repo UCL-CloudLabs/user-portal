@@ -21,6 +21,7 @@ certifi==2017.11.5        # via msrest
 cffi==1.11.2              # via cryptography
 click==6.7                # via flask, pip-tools
 cryptography==2.1.4       # via adal
+dnspython==1.15.0
 first==2.0.1              # via pip-tools
 flask-migrate==2.0.4
 flask-script==2.0.5       # via flask-migrate

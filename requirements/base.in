@@ -28,3 +28,6 @@ azure-mgmt-resource
 
 # Rendering config file templates
 jinja2
+
+# Make DNS updates
+dnspython

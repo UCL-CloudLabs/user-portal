@@ -22,6 +22,10 @@ class Secrets:
     TF_VAR_azure_client_secret = ""
     TF_VAR_azure_subscription_id = ""
 
+    # Key information for DNS udpates
+    DNS_KEYNAME = ""
+    DNS_KEY = ""
+
 
 def apply_secrets():
     """Place all the secrets in environment variables."""
