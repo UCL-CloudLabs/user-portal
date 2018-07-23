@@ -165,7 +165,7 @@ class Deployer:
             with open(str(Path(self.tempdir.name, "terraform.tf")), "w") as f:
                     f.write(rendered_template)
         else:  # if template not in DB (for whatever reason?), render it again
-            self.render(host)
+            self._render(host)
 
         process = self._run_cmd('init', host)
         if process.returncode != 0:

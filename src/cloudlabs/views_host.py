@@ -53,6 +53,7 @@ def add():
             fields['admin_ssh_key_id'] = form.admin_ssh_key.data
         else:
             fields['admin_password'] = form.admin_password.data
+        fields['vm_type'] = form.vm_size.data
         if request.form.get('action', None) == 'Customise setup script':
             custom_form = CustomiseSetupForm()
             db_host = Host.create(**fields)
