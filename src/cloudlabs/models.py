@@ -229,4 +229,3 @@ class Host(Model):
                                        self.os_sku,
                                        self.os_version)
         return info
-
