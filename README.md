@@ -37,7 +37,7 @@ Note that if you want to run the tests locally, you'll need to configure `PRIVAT
 Alternatively, you can also use `LocalDevConfig` if your keys are named `id_rsa_azure` and stored in `~/.ssh` like so:
 
 ```
-export APP_SETTINGS=cloudlabs.config.LocalDevConfig 
+export APP_SETTINGS=cloudlabs.config.LocalDevConfig
 ```
 
 
@@ -162,6 +162,7 @@ Set up Apache:
 * Place private key in `/etc/ssl/private/staging.cloudlabs.key` or `/etc/ssl/private/cloudlabs.key`
 * Set the environment variable ENV to indicate whether this is the production or
   the staging server: `export ENV=staging` or `export ENV=production`
+* Following ISG's recommendations, disable server-status access: `sudo a2dismod status`.
 
 ```bash
 git clone git@github.com:UCL-RITS/CloudLabs.git
