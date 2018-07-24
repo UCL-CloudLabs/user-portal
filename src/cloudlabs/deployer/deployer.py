@@ -175,7 +175,7 @@ class Deployer:
             except Exception as e:
                 raise CloudLabsException("The URL mapping failed.") from e
         else:
-            logger.error("Could not get IP for host %s", host.id)
+            raise CloudLabsException("Could not get IP for host {}".format(host.id))
 
     def destroy(self, host):
         """Remove the given CloudLabs host from the cloud.
