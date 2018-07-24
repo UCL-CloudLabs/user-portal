@@ -98,8 +98,8 @@ class Deployer:
                 self._map_url(host)
                 logger.info("Host %s successfully had its URL mapped", host.id)
             except CloudLabsException as e:
-                logger.error("Host %s could not have its URL mapped\n:" + e,
-                             host.id)
+                logger.error("Host %s could not have its URL mapped:", host.id,
+                             exc_info=e)
         else:
             self._record_result(host, HostStatus.error, 'apply', process.returncode)
             logger.error("Deployment of host %s failed (Terraform return code %s)",
@@ -218,8 +218,8 @@ class Deployer:
             self._unmap_url(host)
             logger.info("Host %s successfully had its URL unmapped", host.id)
         except CloudLabsException as e:
-            logger.error("Host %s could not have its URL unmapped\n:" + e,
-                         host.id)
+            logger.error("Host %s could not have its URL unmapped:", host.id,
+                         exc_info=e)
 
     def _unmap_url(self, host):
         """Undo the mapping from a UCL URL to Azure for the given Host."""
