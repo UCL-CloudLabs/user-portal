@@ -229,3 +229,8 @@ class Host(Model):
                                        self.os_sku,
                                        self.os_version)
         return info
+
+    @property
+    def group_exists(self):
+        """Whether or not the associated resource group exists on the cloud."""
+        return AzureTools().group_exists(names.group_name(self))
