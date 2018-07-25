@@ -166,7 +166,7 @@ class Deployer:
             # domain) to that IP.
             try:
                 keyring = dns.tsigkeyring.from_text({
-                    Secrets["DNS_KEYNAME"]: Secrets["DNS_KEY"]
+                    Secrets.DNS_KEYNAME: Secrets.DNS_KEY
                 })
                 update = Update('cloudlabs.rc.ucl.ac.uk', keyring=keyring,
                                 keyalgorithm=HMAC_SHA256)
@@ -228,7 +228,7 @@ class Deployer:
         """Undo the mapping from a UCL URL to Azure for the given Host."""
         try:
             keyring = dns.tsigkeyring.from_text({
-                Secrets["DNS_KEYNAME"]: Secrets["DNS_KEY"]
+                Secrets.DNS_KEYNAME: Secrets.DNS_KEY
             })
             update = Update('cloudlabs.rc.ucl.ac.uk', keyring=keyring,
                             keyalgorithm=HMAC_SHA256)
