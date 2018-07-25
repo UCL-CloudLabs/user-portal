@@ -173,6 +173,7 @@ class Deployer:
                 # 86400 is the "time to live" (a day, in seconds). This was set
                 # in the sample update script we were given, so reusing it here.
                 update.add(host.base_name, 86400, 'A', ip)
+                dns.query.tcp(update, Secrets.DNS_IP, timeout=10)
                 return ip
             except Exception as e:
                 raise CloudLabsException(
@@ -233,6 +234,7 @@ class Deployer:
             update = Update('cloudlabs.rc.ucl.ac.uk', keyring=keyring,
                             keyalgorithm=HMAC_SHA256)
             update.delete(host.base_name)
+            dns.query.tcp(update, Secrets.DNS_IP, timeout=10)
         except Exception as e:
             raise CloudLabsException("Undoing the URL mapping failed.") from e
 
