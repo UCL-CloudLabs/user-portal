@@ -30,6 +30,18 @@ def profile():
     return render_template('profile.html')
 
 
+@blueprint.route('/data_info')
+def data_info():
+    """Show a confirmation page with information on data-related limitations."""
+    return render_template('data_info.html')
+
+
+@blueprint.route('/help')
+def help():
+    """Show a help page with general information about CloudLabs."""
+    return render_template('help.html')
+
+
 @blueprint.route('/keys/add', methods=('GET', 'POST'))
 @login_required
 def add_key():

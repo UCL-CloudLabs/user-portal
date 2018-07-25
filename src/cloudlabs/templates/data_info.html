@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<p>This portal allows you to create virtual machines (hosts) for a number of
+purposes. Before you continue, we need to stress that <strong>these machines
+cannot be used to host personal or sensitive data</strong>.
+
+<p>To make sure that our users comply with this, we would like to ask you to take a
+moment to consider the following questions about your intended use of the
+service:<br>
+(in this case, "<em>the project</em>" refers to the code you run from the created
+host and any data stored there or transferred through it)
+
+<ul>
+  <li>Will the project involve the collection of new information about individuals?</li>
+  <li>Will the project compel individuals to provide information about themselves?</li>
+  <li>Will information about individuals be disclosed to organisations or people who have not previously had routine access to the information?</li>
+  <li>Are you using information about individuals for a purpose it is not currently used for, or in a way it is not currently used?</li>
+  <li>Does the project involve you using new technology that might be perceived as being privacy intrusive? For example, the use of biometrics or facial recognition.</li>
+  <li>Will the project result in you making decisions or taking action against individuals in ways that can have a significant impact on them?</li>
+  <li>Is the information about individuals of a kind particularly likely to raise privacy concerns or expectations? For example, health records, criminal records or other information that people would consider to be private.</li>
+  <li>Will the project require you to contact individuals in ways that they may find intrusive?</li>
+</ul>
+
+<p>If you answer "yes" to any of the above, we may unfortunately be unable to
+host your application.
+If you are concerned that your use case does not comply with these restrictions
+or you need more information, please feel free to contact us by
+<a href="mailto:rc-softdev@ucl.ac.uk">email</a>.
+
+<p>Note that UCL provides specialised solutions for storing and handling personal
+data, such as the <a href="https://www.ucl.ac.uk/isd/itforslms/services/handling-sens-data/tech-soln">
+Data Safe Haven</a>, which may be more suitable for your purposes.
+The UCL Information Security Group also have an
+<a href="https://opinio.ucl.ac.uk/s?s=45808">online tool</a> to help you better
+understand the risks associated with your data set.
+
+<p>By proceeding, you indicate that you understand and agree with these constraints.
+
+<p><a class="btn" href="{{ url_for('host.add') }}">I understand and want to create a host</a>
+{% endblock content %}
