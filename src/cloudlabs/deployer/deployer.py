@@ -95,8 +95,9 @@ class Deployer:
             self._record_result(host, HostStatus.running)
             logger.info("Host %s successfully deployed", host.id)
             try:
-                self._map_url(host)
-                logger.info("Host %s successfully had its URL mapped", host.id)
+                ip = self._map_url(host)
+                logger.info("Host %s (%s) successfully had its URL mapped to %s",
+                            host.id, host.base_name, ip)
             except CloudLabsException as e:
                 logger.error("Host %s could not have its URL mapped:", host.id,
                              exc_info=e)
@@ -172,8 +173,10 @@ class Deployer:
                 # 86400 is the "time to live" (a day, in seconds). This was set
                 # in the sample update script we were given, so reusing it here.
                 update.add(host.base_name, 86400, 'A', ip)
+                return ip
             except Exception as e:
-                raise CloudLabsException("The URL mapping failed.") from e
+                raise CloudLabsException(
+                    "The URL mapping for {} failed.".format(ip)) from e
         else:
             raise CloudLabsException("Could not get IP for host {}".format(host.id))
 
