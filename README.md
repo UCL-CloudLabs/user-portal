@@ -162,6 +162,7 @@ Set up Apache:
 * Place private key in `/etc/ssl/private/staging.cloudlabs.key` or `/etc/ssl/private/cloudlabs.key`
 * Set the environment variable ENV to indicate whether this is the production or
   the staging server: `export ENV=staging` or `export ENV=production`
+* Following ISG's recommendations, disable server-status access: `sudo a2dismod status`.
 
 ```bash
 git clone git@github.com:UCL-RITS/CloudLabs.git
