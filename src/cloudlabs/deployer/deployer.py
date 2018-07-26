@@ -266,7 +266,8 @@ class Deployer:
         """Delete a host through the Azure SDK.
 
         This should be used only as a last resort, when the machine is still
-        being deployed and there is no Terraform state file available.
+        being deployed and there is no Terraform state file available, or if we
+        don't know whether the deployment finished smoothly.
 
         :param host: a Host instance"""
         self.tools.delete_VM(host)

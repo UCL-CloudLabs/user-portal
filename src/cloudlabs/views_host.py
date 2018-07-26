@@ -101,7 +101,7 @@ def delete(id):
     host = Host.query.get_or_404(id)
     abort_if_not_owner(host)
     label = host.label
-    if host.status in [HostStatus.defining, HostStatus.error]:
+    if host.status in [HostStatus.defining]:
         host.delete()
         logger.info("Host %s deleted from database", id)
         flash('Virtual machine "{}" deleted'.format(label), 'success')
@@ -169,8 +169,8 @@ def deploy(host):
 def destroy(host):
     """Signals Celery to destroy a VM in the background."""
     if host.status is not HostStatus.destroying:
-        host.update(status=HostStatus.destroying)
         celery = create_celery(current_app)
+        hard_delete = False
         # First check if the host is currently being deployed, in which case we
         # stop the corresponding task (if already running), and start a "hard"
         # deletion process (interrupting the deployment).
@@ -181,8 +181,31 @@ def destroy(host):
                 host.id,
                 host.task)
             celery.control.revoke(host.task, terminate=True)
-        else:
-            hard_delete = False
+        # If the host is in the error state, we will delete its
+        # entire resource group directly. This is(?) safer than doing it through
+        # Terraform, because the deployment may have stopped at the VM stage,
+        # which could(?) cause problems with Terraform.
+        if host.status == HostStatus.error:
+            hard_delete = True
+            logger.info(
+                "Host %s was in error state, will delete its whole group.",
+                host.id)
+        # If the host cannot be found, we check whether its group exists (for
+        # example, in case the VM was already deleted from the portal).
+        # If the group is not there, we do nothing.
+        elif host.status == HostStatus.unknown:
+            if not host.group_exists:
+                logger.info(
+                    "All resources for host %s have been destroyed already.",
+                    host.id)
+                host.update(status=HostStatus.defining)
+                return
+            else:
+                hard_delete = True
+                logger.info("Deleting remaining resource for host %s",
+                            host.id)
+        # In any other case, we simply delete everything through Terraform.
+        host.update(status=HostStatus.destroying)
         logger.info("Sending destroy task for host %s (hard = %s)",
                     host.id, hard_delete)
         celery.send_task(

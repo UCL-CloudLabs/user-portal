@@ -4,6 +4,7 @@ import logging
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref
 
+from .azure_tools import AzureTools
 from .database import Model
 from .extensions import db
 from .host_status import HostStatus
@@ -235,3 +236,8 @@ class Host(Model):
                                        self.os_sku,
                                        self.os_version)
         return info
+
+    @property
+    def group_exists(self):
+        """Whether or not the associated resource group exists on the cloud."""
+        return AzureTools().group_exists(names.group_name(self))

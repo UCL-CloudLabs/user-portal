@@ -24,7 +24,7 @@ class Config:
     PRIVATE_SSH_KEY_PATH = os.environ.get('PRIVATE_SSH_KEY_PATH')
 
     # Logging configuration file
-    LOG_CONFIG_FILE = 'cloudlabs/log_config.yaml'
+    LOG_CONFIG_FILE = '/home/cloudlabs/user-portal/src/cloudlabs/log_config.yaml'
 
     # Settings for Celery
     CELERY_BROKER_URL = 'amqp://guest@localhost'
