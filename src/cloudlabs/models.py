@@ -177,8 +177,7 @@ class Host(Model):
     @property
     def link(self):
         """The full URL to this host when deployed, for use in href attributes."""
-        # return 'http://' + self.basic_url
-        return 'http://{}:{}'.format(names.azure_url(self.dns_name), self.port)
+        return 'http://{}:{}'.format(self.basic_url, self.port)
 
     @property
     def basic_url(self):
