@@ -32,19 +32,19 @@ export APP_SETTINGS=cloudlabs.config.DevConfig
 
 It is recommended that you create your own SSH key pair for local testing. Please name the keys `id_rsa_azure`.
 
-Note that if you want to run the tests locally, you'll need to configure `PRIVATE_SSH_KEY_PATH` so it points to the location where the private key is. The corresponding public key should then be in `$PRIVATE_SSH_KEY_PATH.pub`.  
+Note that if you want to run the tests locally, you'll need to configure `PRIVATE_SSH_KEY_PATH` so it points to the location where the private key is. The corresponding public key should then be in `$PRIVATE_SSH_KEY_PATH.pub`.
 
 Alternatively, you can also use `LocalDevConfig` if your keys are named `id_rsa_azure` and stored in `~/.ssh` like so:
 
 ```
-export APP_SETTINGS=cloudlabs.config.LocalDevConfig 
+export APP_SETTINGS=cloudlabs.config.LocalDevConfig
 ```
 
 
 ### Configure secrets
 
 Copy the file `src/cloudlabs/secrets.example.py` as `src/cloudlabs/secrets.py` and fill in suitable values.
-Ask a team member for the Azure credentials.
+Ask a team member for the Azure credentials and DNS information.
 
 ### Install the background task queue
 
@@ -179,6 +179,14 @@ sudo a2enmod wsgi shib2 ssl rewrite headers
 sudo a2ensite default-ssl
 sudo service apache2 restart
 ```
+
+Set up secrets:
+Copy the file `src/cloudlabs/secrets.example.py` as `src/cloudlabs/secrets.py` and fill in suitable values.
+There is an sample filled-in file in the private CloudLabs repository. In particular,
+choose the appropriate DNS IP, key name and key according to whether you want to
+access the production or development server (note that access to the DNS servers
+is restricted to particular source IPs, so this will have to be arranged if you
+are setting up a completely new machine).
 
 Set up Shibboleth:
 (the instructions here are for the staging server; for production, replace
