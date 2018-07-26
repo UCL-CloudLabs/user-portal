@@ -93,6 +93,7 @@ def image():
     # dedicated NIC (each NIC can only be attached to one VM). On the other hand,
     # it would simplify the tear-down process, as we could just delete the new
     # resource group.
+    # Update: This is complex to do as the configuration quickly becomes too long.
     target_rg = info["rg"]
     target_vm = "testImage_vm"
     action = tools.cmc.virtual_machines.create_or_update(
