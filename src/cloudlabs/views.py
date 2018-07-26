@@ -1,3 +1,4 @@
+import logging
 
 from flask import (
     abort,
@@ -13,6 +14,8 @@ from .models import SshKey
 from .utils import login_required
 
 
+logger = logging.getLogger("cloudlabs.admin")
+
 blueprint = Blueprint('main', __name__)
 
 
@@ -27,6 +30,18 @@ def profile():
     return render_template('profile.html')
 
 
+@blueprint.route('/data_info')
+def data_info():
+    """Show a confirmation page with information on data-related limitations."""
+    return render_template('data_info.html')
+
+
+@blueprint.route('/help')
+def help():
+    """Show a help page with general information about CloudLabs."""
+    return render_template('help.html')
+
+
 @blueprint.route('/keys/add', methods=('GET', 'POST'))
 @login_required
 def add_key():
@@ -37,6 +52,7 @@ def add_key():
             label=form.label.data.strip(),
             public_key=form.public_key.data.strip())
         flash('SSH key "{}" added'.format(form.label.data), 'success')
+        logger.info("%s added new key %s", g.user.ucl_id, form.label.data)
         return redirect(url_for('main.profile'))
     return render_template('add_key.html', form=form)
 
@@ -49,5 +65,6 @@ def delete_key(id):
         abort(404)
     label = key.label
     key.delete()
+    logger.info("%s deleted key %s", g.user.ucl_id, label)
     flash('SSH key "{}" deleted'.format(label), 'success')
     return redirect(url_for('main.profile'))

@@ -8,6 +8,11 @@ variable "azure_client_secret" {
 variable "azure_tenant_id" {
 }
 
+# CloudLabs now needs TF > 0.11.0
+terraform {
+  required_version = "> 0.11.0"
+}
+
 # Configure Azure provider
 provider "azurerm" {
   subscription_id = "${var.azure_subscription_id}"
@@ -21,14 +26,14 @@ provider "azurerm" {
 # create a resource group if it doesn't exist
 resource "azurerm_resource_group" "rg" {
     name = "{{names.resource_group}}"
-    location = "ukwest"
+    location = "uksouth"
 }
 
-# create virtual network
+# create virtual network and subnet
 resource "azurerm_virtual_network" "vnet" {
     name = "tfvnet"
     address_space = ["10.0.0.0/16"]
-    location = "ukwest"
+    location = "uksouth"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     subnet {
         name = "tfsub"
@@ -36,19 +41,17 @@ resource "azurerm_virtual_network" "vnet" {
     }
 }
 
-# create subnet
-resource "azurerm_subnet" "subnet" {
-    name = "tfsub"
-    resource_group_name = "${azurerm_resource_group.rg.name}"
-    virtual_network_name = "${azurerm_virtual_network.vnet.name}"
-    address_prefix = "10.0.2.0/24"
-    #network_security_group_id = "${azurerm_network_security_group.nsg.id}"
+# get reference to subnet for other resources to use
+data "azurerm_subnet" "subnet" {
+  name                 = "tfsub"
+  virtual_network_name = "${azurerm_virtual_network.vnet.name}"
+  resource_group_name  = "${azurerm_resource_group.rg.name}"
 }
 
 # create public IPs
 resource "azurerm_public_ip" "ip" {
     name = "tfip"
-    location = "ukwest"
+    location = "uksouth"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     public_ip_address_allocation = "dynamic"
     domain_name_label = "{{names.dns_name}}"
@@ -61,12 +64,12 @@ resource "azurerm_public_ip" "ip" {
 # create network interface
 resource "azurerm_network_interface" "ni" {
     name = "tfni"
-    location = "ukwest"
+    location = "uksouth"
     resource_group_name = "${azurerm_resource_group.rg.name}"
 
     ip_configuration {
         name = "ipconfiguration"
-        subnet_id = "${azurerm_subnet.subnet.id}"
+        subnet_id = "${data.azurerm_subnet.subnet.id}"
         private_ip_address_allocation = "static"
         private_ip_address = "10.0.2.5"
         public_ip_address_id = "${azurerm_public_ip.ip.id}"
@@ -77,7 +80,7 @@ resource "azurerm_network_interface" "ni" {
 resource "azurerm_storage_account" "storage" {
     name = "{{names.storage}}"
     resource_group_name = "${azurerm_resource_group.rg.name}"
-    location = "ukwest"
+    location = "uksouth"
     account_replication_type = "LRS"
     account_tier = "Standard"
 
@@ -100,16 +103,16 @@ resource "azurerm_storage_container" "storagecont" {
 # create virtual machine
 resource "azurerm_virtual_machine" "vm" {
     name = "{{names.vm}}"
-    location = "ukwest"
+    location = "uksouth"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     network_interface_ids = ["${azurerm_network_interface.ni.id}"]
-    vm_size = "Standard_A6"
+    vm_size = "{{host.vm_type}}"
 
     storage_image_reference {
-        publisher = "Canonical"
-        offer = "UbuntuServer"
-        sku = "16.04-LTS"
-        version = "latest"
+        publisher = "{{host.os_publisher}}"
+        offer = "{{host.os_offer}}"
+        sku = "{{host.os_sku}}"
+        version = "{{host.os_version}}"
     }
 
     storage_os_disk {
@@ -120,7 +123,7 @@ resource "azurerm_virtual_machine" "vm" {
     }
 
     os_profile {
-        computer_name = "{{host.dns_name}}"
+        computer_name = "${azurerm_resource_group.rg.name}"
         admin_username = "{{host.admin_username}}"
         {% if host.auth_type=="Password" %}
         admin_password = "{{host.admin_password}}"
@@ -146,7 +149,7 @@ resource "azurerm_virtual_machine" "vm" {
     }
 
     connection {
-        host = "{{names.dns_name}}.ukwest.cloudapp.azure.com"
+        host = "{{names.dns_name}}.uksouth.cloudapp.azure.com"
         user = "{{host.admin_username}}"
         type = "ssh"
         private_key = "${file("{{private_key_path}}")}"

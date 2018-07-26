@@ -14,7 +14,9 @@
 {% block content %}
   <h1>Self-serve Web Hosting for Research Applications</h1>
   <p>Welcome to the trial 'CloudLabs' service for easy hosting of research web applications.</p>
-  <p>In the future there will be links to documentation about the service.</p>
+  <p>You can find some general information about this service and how to use it on the
+    <a href="{{ url_for('main.help') }}">help page</a>.
+    In the future there will be more links to documentation about the service.</p>
 
   {% if user %}
     {% include "includes/_dashboard.html" %}

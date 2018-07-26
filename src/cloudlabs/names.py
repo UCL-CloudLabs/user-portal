@@ -35,7 +35,7 @@ def resource_names(host):
         'resource_group': base_name + 'rg',
         'dns_name': base_name,
         'storage': uuid.uuid5(uuid.NAMESPACE_DNS, host.basic_url).hex[:24],
-        'vm': base_name + 'vm',
+        'vm': 'virtual_machine',
     }
 
 
@@ -45,10 +45,14 @@ def group_name(host):
 
 
 def vm_name(host):
-    """Get the name of the machine resource corresponding to a host."""
-    return host.dns_name + 'vm'
+    """
+    Get the name of the machine resource corresponding to a host.
+    Since it's unique across the resource group, and Azure imposes restrictions
+    on the VM name length which haikunator might break, we can hardcode it.
+    """
+    return 'virtual_machine'
 
 
 def azure_url(dns_name):
     """Return the full URL of a VM hosted on Azure given its DNS name."""
-    return '{}.ukwest.cloudapp.azure.com'.format(dns_name)
+    return '{}.uksouth.cloudapp.azure.com'.format(dns_name)

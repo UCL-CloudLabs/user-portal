@@ -30,10 +30,21 @@ export FLASK_DEBUG=True
 export APP_SETTINGS=cloudlabs.config.DevConfig
 ```
 
+It is recommended that you create your own SSH key pair for local testing. Please name the keys `id_rsa_azure`.
+
+Note that if you want to run the tests locally, you'll need to configure `PRIVATE_SSH_KEY_PATH` so it points to the location where the private key is. The corresponding public key should then be in `$PRIVATE_SSH_KEY_PATH.pub`.
+
+Alternatively, you can also use `LocalDevConfig` if your keys are named `id_rsa_azure` and stored in `~/.ssh` like so:
+
+```
+export APP_SETTINGS=cloudlabs.config.LocalDevConfig
+```
+
+
 ### Configure secrets
 
 Copy the file `src/cloudlabs/secrets.example.py` as `src/cloudlabs/secrets.py` and fill in suitable values.
-Ask a team member for the Azure credentials.
+Ask a team member for the Azure credentials and DNS information.
 
 ### Install the background task queue
 
@@ -141,23 +152,28 @@ Copy `src/cloudlabs/secrets.example.py` to `src/cloudlabs/secrets.py` and fill i
 Install Terraform:
 ```bash
 cd
-curl -sSL -o terraform.zip "https://releases.hashicorp.com/terraform/0.10.2/terraform_0.10.2_linux_amd64.zip"
+curl -sSL -o terraform.zip "https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip"
 sudo apt-get install unzip
 unzip terraform.zip
 sudo cp terraform /usr/local/bin/terraform
 ```
 
 Set up Apache:
-* Place private key in `/etc/ssl/private/staging.cloudlabs.key`
+* Place private key in `/etc/ssl/private/staging.cloudlabs.key` or `/etc/ssl/private/cloudlabs.key`
+* Set the environment variable ENV to indicate whether this is the production or
+  the staging server: `export ENV=staging` or `export ENV=production`
+* Following ISG's recommendations, disable server-status access: `sudo a2dismod status`.
 
 ```bash
 git clone git@github.com:UCL-RITS/CloudLabs.git
-sudo cp CloudLabs/secrets/staging_cloudlabs_rc_ucl_ac_uk.crt /etc/ssl/certs/
-sudo cp CloudLabs/secrets/QuoVadisOVchain.pem /etc/ssl/certs/
-sudo cp CloudLabs/conf_files/{000-default.conf,default-ssl.conf} /etc/apache2/sites-available/
+cd CloudLabs
+python make_conf_files.py  # create the configuration files used below
+sudo cp secrets/cloudlabs_rc_ucl_ac_uk.crt /etc/ssl/certs/
+sudo cp secrets/QuoVadisOVchain.pem /etc/ssl/certs/
+sudo cp conf_files/{000-default.conf,default-ssl.conf} /etc/apache2/sites-available/
 
 sudo chmod 600 /etc/ssl/private/staging.cloudlabs.key
-sudo chmod 644 /etc/ssl/certs/{*cloudlabs,QuoVadisOV}*
+sudo chmod 644 /etc/ssl/certs/{cloudlabs,QuoVadisOV}*
 # Create a separate unprivileged user for the WSGI daemon to run as
 sudo adduser --system --disabled-login --group cloudlabs-wsgi
 sudo a2enmod wsgi shib2 ssl rewrite headers
@@ -165,7 +181,17 @@ sudo a2ensite default-ssl
 sudo service apache2 restart
 ```
 
+Set up secrets:
+Copy the file `src/cloudlabs/secrets.example.py` as `src/cloudlabs/secrets.py` and fill in suitable values.
+There is an sample filled-in file in the private CloudLabs repository. In particular,
+choose the appropriate DNS IP, key name and key according to whether you want to
+access the production or development server (note that access to the DNS servers
+is restricted to particular source IPs, so this will have to be arranged if you
+are setting up a completely new machine).
+
 Set up Shibboleth:
+(the instructions here are for the staging server; for production, replace
+`staging.cloudlabs` with `cloudlabs` everywhere)
 
 ```bash
 sudo shib-keygen -e https://sp.staging.cloudlabs.rc.ucl.ac.uk/shibboleth -h staging.cloudlabs.rc.ucl.ac.uk -o /etc/shibboleth -y 10
@@ -190,17 +216,21 @@ export FLASK_APP=autoapp.py
 export DATABASE_URL=postgresql:///cloudlabs
 cd ~/user-portal/src
 source ../venv/bin/activate
-sudo -u cloudlabs-wsgi -E -- `which flask` db upgrade
+sudo -u cloudlabs-wsgi -E -H -- `which flask` db upgrade
 ```
 
 Set up Celery & RabbitMQ:
 ```bash
+cd
 sudo apt-get install rabbitmq-server
 sudo cp CloudLabs/conf_files/rabbitmq-server /etc/default/rabbitmq-server
 sudo cp CloudLabs/conf_files/celery-init /etc/init.d/celeryd
+sudo cp CloudLabs/conf_files/celerybeat-init /etc/init.d/celerybeat
 sudo cp CloudLabs/conf_files/celery-defaults /etc/default/celeryd
 sudo update-rc.d celeryd defaults 25
 sudo /etc/init.d/celeryd restart
+sudo update-rc.d celerybeat defaults 25
+sudo /etc/init.d/celerybeat restart
 ```
 
 ### Upgrading the staging server
@@ -210,8 +240,10 @@ Notably:
 1. Pull latest changes from GitHub
 2. Install latest package requirements
 3. Apply DB migrations
-4. Restart Celery & Apache
+4. Restart Celery (both celeryd and celerybeat) & Apache
 
+Note that Celery **must** be restarted even when the tasks themselves have not
+been changed, otherwise they will keep using an older version of the main code.
 
 ## Useful reference websites
 

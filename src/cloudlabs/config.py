@@ -23,6 +23,9 @@ class Config:
     # Require this to be set explicitly
     PRIVATE_SSH_KEY_PATH = os.environ.get('PRIVATE_SSH_KEY_PATH')
 
+    # Logging configuration file
+    LOG_CONFIG_FILE = '/home/cloudlabs/user-portal/src/cloudlabs/log_config.yaml'
+
     # Settings for Celery
     CELERY_BROKER_URL = 'amqp://guest@localhost'
     CELERY_TIMEZONE = 'Europe/London'
@@ -62,5 +65,15 @@ class DevConfig(Config):
         'PRIVATE_SSH_KEY_PATH',
         '~/build/UCL-CloudLabs/user-portal/src/test/id_rsa_travis_azure')
 
+    # Logging configuration file
+    LOG_CONFIG_FILE = 'cloudlabs/dev_log_config.yaml'
+
     # How many worker processes to run
     CELERY_WORKER_CONCURRENCY = 2
+
+
+class LocalDevConfig(DevConfig):
+    # Point to where in local machine keys are
+    PRIVATE_SSH_KEY_PATH = os.environ.get(
+        'PRIVATE_SSH_KEY_PATH',
+        '~/.ssh/id_rsa_azure')

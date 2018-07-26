@@ -1,14 +1,24 @@
-import json
+import logging
 import os
-import subprocess
-from flask import current_app
-from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
+import subprocess
 from tempfile import TemporaryDirectory
 
+import dns.query
+import dns.tsigkeyring
+from dns.tsig import HMAC_SHA256
+from dns.update import Update
+from flask import current_app
+from jinja2 import Environment, FileSystemLoader
+
+from .. import CloudLabsException
 from ..azure_tools import AzureTools
 from ..host_status import HostStatus
 from ..names import resource_names
+from ..secrets import Secrets
+
+
+logger = logging.getLogger("cloudlabs.deployer")
 
 
 class Deployer:
@@ -80,11 +90,21 @@ class Deployer:
             self._record_result(host, HostStatus.error, 'init', process.returncode)
             return
         host.update(deploy_log=host.deploy_log + '\n\nRunning deployment...\n\n')
-        process = self._run_cmd('apply', host)
+        process = self._run_cmd('apply', host, args=['-auto-approve=true'])
         if process.returncode == 0:
             self._record_result(host, HostStatus.running)
+            logger.info("Host %s successfully deployed", host.id)
+            try:
+                ip = self._map_url(host)
+                logger.info("Host %s (%s) successfully had its URL mapped to %s",
+                            host.id, host.base_name, ip)
+            except CloudLabsException as e:
+                logger.error("Host %s could not have its URL mapped:", host.id,
+                             exc_info=e)
         else:
             self._record_result(host, HostStatus.error, 'apply', process.returncode)
+            logger.error("Deployment of host %s failed (Terraform return code %s)",
+                         host.id, process.returncode)
 
     def _record_result(self, host, status, command=None, return_code=None):
         """Record the result of a Terraform run in the DB.
@@ -114,20 +134,52 @@ class Deployer:
         '''Run a terraform command for the given host.
 
         Will append the command's output & stderr to the host's deploy_log.
+        Will also forward stderr to the log.
 
         :param name: the name of the Terraform command to run
         :param host: the host object being deployed
+        :param args: extra options to pass to the command (optional)
         :returns: the subprocess object
         '''
         process = subprocess.Popen(['terraform', name, '-no-color'] + args,
                                    cwd=self.tempdir.name,
                                    stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT)
+                                   stderr=subprocess.PIPE)
+        logger.info('Running command "%s" for host %s',
+                    " ".join(process.args), host.id)
         for line in process.stdout:
             print(line.decode('utf-8'), end='')
             host.update(deploy_log=host.deploy_log + line.decode('utf-8'))
+        for line in process.stderr:
+            print(line.decode('utf-8'), end='')
+            host.update(deploy_log=host.deploy_log + line.decode('utf-8'))
+            logger.error("(TF for host %s) %s", host.id, line.decode('utf-8').strip('\n'))
         process.wait()
         return process
+
+    def _map_url(self, host):
+        """Set up a mapping from a UCL URL to Azure for the given Host."""
+        ip = self.tools.get_ip(host)
+        if ip:
+            # Assuming we have retrieved the IP of the host on Azure, update the
+            # UCL DNS server to map the requested name (under the CloudLabs
+            # domain) to that IP.
+            try:
+                keyring = dns.tsigkeyring.from_text({
+                    Secrets.DNS_KEYNAME: Secrets.DNS_KEY
+                })
+                update = Update('cloudlabs.rc.ucl.ac.uk', keyring=keyring,
+                                keyalgorithm=HMAC_SHA256)
+                # 86400 is the "time to live" (a day, in seconds). This was set
+                # in the sample update script we were given, so reusing it here.
+                update.add(host.base_name, 86400, 'A', ip)
+                dns.query.tcp(update, Secrets.DNS_IP, timeout=10)
+                return ip
+            except Exception as e:
+                raise CloudLabsException(
+                    "The URL mapping for {} failed.".format(ip)) from e
+        else:
+            raise CloudLabsException("Could not get IP for host {}".format(host.id))
 
     def destroy(self, host):
         """Remove the given CloudLabs host from the cloud.
@@ -150,7 +202,7 @@ class Deployer:
             with open(str(Path(self.tempdir.name, "terraform.tf")), "w") as f:
                     f.write(rendered_template)
         else:  # if template not in DB (for whatever reason?), render it again
-            self.render(host)
+            self._render(host)
 
         process = self._run_cmd('init', host)
         if process.returncode != 0:
@@ -160,8 +212,31 @@ class Deployer:
         process = self._run_cmd('destroy', host, args=['-force'])
         if process.returncode == 0:
             self._record_result(host, HostStatus.defining)
+            logger.info("Host %s successfully destroyed", host.id)
         else:
             self._record_result(host, HostStatus.error, 'destroy', process.returncode)
+            logger.info("Destruction of host %s failed (Terraform return code %s)",
+                        host.id, process.returncode)
+        # Delete the URL mapping regardless of whether Terraform succeeded
+        try:
+            self._unmap_url(host)
+            logger.info("Host %s successfully had its URL unmapped", host.id)
+        except CloudLabsException as e:
+            logger.error("Host %s could not have its URL unmapped:", host.id,
+                         exc_info=e)
+
+    def _unmap_url(self, host):
+        """Undo the mapping from a UCL URL to Azure for the given Host."""
+        try:
+            keyring = dns.tsigkeyring.from_text({
+                Secrets.DNS_KEYNAME: Secrets.DNS_KEY
+            })
+            update = Update('cloudlabs.rc.ucl.ac.uk', keyring=keyring,
+                            keyalgorithm=HMAC_SHA256)
+            update.delete(host.base_name)
+            dns.query.tcp(update, Secrets.DNS_IP, timeout=10)
+        except Exception as e:
+            raise CloudLabsException("Undoing the URL mapping failed.") from e
 
     def stop(self, host):
         """Stop a host that is running, but do not remove it from the cloud.
@@ -191,10 +266,19 @@ class Deployer:
         """Delete a host through the Azure SDK.
 
         This should be used only as a last resort, when the machine is still
-        being deployed and there is no Terraform state file available.
+        being deployed and there is no Terraform state file available, or if we
+        don't know whether the deployment finished smoothly.
 
         :param host: a Host instance"""
         self.tools.delete_VM(host)
         self._record_result(host, HostStatus.defining)
-        # remove the deploying task's ID from the database
+        # Remove the deploying task's ID from the database
         host.update(task=None)
+        logger.info("Host %s and all its resources deleted", host.id)
+        # Unmap the URL from the ucl.ac.uk domain
+        try:
+            self._unmap_url(host)
+            logger.info("Host %s successfully had its URL unmapped", host.id)
+        except CloudLabsException as e:
+            logger.error("Host %s could not have its URL unmapped\n:" + e,
+                         host.id)

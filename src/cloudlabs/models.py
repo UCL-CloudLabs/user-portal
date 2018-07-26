@@ -1,13 +1,18 @@
 import json
+import logging
 
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref
 
+from .azure_tools import AzureTools
 from .database import Model
 from .extensions import db
 from .host_status import HostStatus
 from .roles import Roles
 from . import names
+
+
+logger = logging.getLogger("cloudlabs.admin")
 
 
 class User(Model):
@@ -49,6 +54,7 @@ class User(Model):
         user = cls.query.filter_by(ucl_id=ucl_id).first()
         if user is None:
             user = cls.create(ucl_id=ucl_id, **kwargs)
+            logger.info("A new user %s (%s) has been created", user.ucl_id, user.name)
         else:
             fields = ['name', 'email', 'upi']
             updates = {}
@@ -56,6 +62,10 @@ class User(Model):
                 if kwargs[field] != getattr(user, field):
                     updates[field] = kwargs[field]
             if updates:
+                logger.info(
+                    "Updating information for user {} ".format(user.ucl_id)
+                    + ", ".join("{}={}".format(attr, updates[attr]) for attr in updates)
+                )
                 user.update(**updates)
         return user
 
@@ -97,6 +107,11 @@ class Host(Model):
     # The actual domain name, including anything added for randomisation
     dns_name = db.Column(db.String(50), unique=True, index=True,
                          nullable=False)
+    os_publisher = db.Column(db.String(50), default="Canonical")
+    os_offer = db.Column(db.String(50), default="UbuntuServer")
+    os_sku = db.Column(db.String(50), default="16.04-LTS")
+    os_version = db.Column(db.String(50), default="latest")
+    vm_type = db.Column(db.String(50))
     # TODO different max lenghts for base_name and dns_name?
     # TODO also keep the final DNS used, depending on the provider chosen?
     # (actually link() should be fine, but keeping comment for now for clarity)
@@ -163,13 +178,20 @@ class Host(Model):
     @property
     def link(self):
         """The full URL to this host when deployed, for use in href attributes."""
-        # return 'http://' + self.basic_url
-        return 'http://{}:{}'.format(names.azure_url(self.dns_name), self.port)
+        return 'http://{}:{}'.format(self.basic_url, self.port)
 
     @property
     def basic_url(self):
         """This host's URL without scheme, suitable for user display."""
         return self.base_name + '.cloudlabs.rc.ucl.ac.uk'
+
+    @property
+    def underlying_url(self):
+        """The URL of the host in the underlying cloud provider.
+
+        Should primarily be used for testing, not user display.
+        """
+        return 'http://{}:{}'.format(names.azure_url(self.dns_name), self.port)
 
     @property
     def auth_type(self):
@@ -208,12 +230,14 @@ class Host(Model):
 
     @property
     def os_info(self):
-        info = {'type': '', 'version': ''}
-        for key, value in self.vm_info.items():
-            if key.startswith('storage_image'):
-                if key.endswith('offer'):
-                    info['type'] = value
-                elif key.endswith('sku'):
-                    info['version'] = value
-        info = (info['type'] + ' ' + info['version']).strip()
-        return info or 'Unknown'
+        info = "Unknown"
+        if self.os_offer:
+            info = "{} {} ({})".format(self.os_offer,
+                                       self.os_sku,
+                                       self.os_version)
+        return info
+
+    @property
+    def group_exists(self):
+        """Whether or not the associated resource group exists on the cloud."""
+        return AzureTools().group_exists(names.group_name(self))

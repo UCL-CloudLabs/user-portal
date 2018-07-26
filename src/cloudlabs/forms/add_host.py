@@ -2,6 +2,7 @@ from flask import g
 from flask_wtf import FlaskForm
 from wtforms.fields import (
     IntegerField,
+    PasswordField,
     SelectField,
     StringField,
     TextAreaField
@@ -34,6 +35,13 @@ class AddHostForm(FlaskForm):
         validators=[v.Length(min=1, max=Host.dns_name.type.length)])
     # TODO adapt max length to exclude suffixes/randomisation?
 
+    vm_size = SelectField(
+        'VM size',
+        description='Specifications of new host',
+        choices=[('Standard_A1_v2', '1 core, 2GB RAM'),
+                 ('Standard_A4_v2', '4 cores, 8GB RAM'),
+                 ('Standard_A4m_v2', '4 cores, 32GB RAM')])
+
     admin_username = StringField(
         'Admin username',
         description='Username of the admin user to be created on the new host',
@@ -52,7 +60,7 @@ class AddHostForm(FlaskForm):
         ' Set up further keys by visiting your profile page.',
         coerce=int)
 
-    admin_password = StringField(
+    admin_password = PasswordField(
         'Admin password',
         description='Password to use for the admin user on this host',
         validators=[v.Optional(), v.Length(min=12,

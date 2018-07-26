@@ -20,7 +20,7 @@
   </tr>
   {% for host in user.hosts %}
     <tr>
-      <td>{{ host.label }}</td>
+      <td><span title="{{ host.description }}">{{ host.label }}</span></td>
       <td><a href="{{ host.link }}">{{ host.basic_url }}</a></td>
       <td>
         {%- if host.status in [HostStatus.deploying, HostStatus.error, HostStatus.destroying] -%}
@@ -33,25 +33,25 @@
       </td>
       <td>
         {% if host.status in [HostStatus.running, HostStatus.starting] %}
-          <a href="{{ url_for('host.control', id=host.id, action='stop') }}"><img src="{{ url_for('static', filename='img/stop.svg') }}" alt="Stop virtual machine" class="action" /></a>
+          <a href="{{ url_for('host.control', id=host.id, action='stop') }}"><img src="{{ url_for('static', filename='img/stop.svg') }}" alt="Stop virtual machine" title="Stop virtual machine" class="action" /></a>
         {% endif %}
         {% if host.status == HostStatus.running %}
-          <a href="{{ url_for('host.control', id=host.id, action='restart') }}"><img src="{{ url_for('static', filename='img/restart.svg') }}" alt="Restart virtual machine" class="action" /></a>
+          <a href="{{ url_for('host.control', id=host.id, action='restart') }}"><img src="{{ url_for('static', filename='img/restart.svg') }}" alt="Restart virtual machine" title="Restart virtual machine" class="action" /></a>
         {% endif %}
         {% if host.status == HostStatus.stopped %}
-          <a href="{{ url_for('host.control', id=host.id, action='start') }}"><img src="{{ url_for('static', filename='img/start.svg') }}" alt="Start virtual machine" class="action" /></a>
+          <a href="{{ url_for('host.control', id=host.id, action='start') }}"><img src="{{ url_for('static', filename='img/start.svg') }}" alt="Start virtual machine" title="Start virtual machine" class="action" /></a>
         {% endif %}
-        <a href="{{ url_for('host.edit', id=host.id) }}"><img src="{{ url_for('static', filename='img/configure.svg') }}" alt="Configure virtual machine') }}" class="action" /></a>
-        <a href="{{ url_for('host.download', id=host.id) }}"><img src="{{ url_for('static', filename='img/download.svg') }}" alt="Download virtual machine image" class="action" /></a>
-        <img src="{{ url_for('static', filename='img/delete.svg') }}" alt="Delete virtual machine" class="action" onclick="confirm_delete('{{ url_for('host.delete', id=host.id) }}', '{{'delete' if host.status in [HostStatus.defining, HostStatus.error] else 'destroy'}}')" />
-        <a href="{{ url_for('host.info', id=host.id) }}"><img src="{{ url_for('static', filename='img/info.svg') }}" alt="Show virtual machine info" class="action" /></a>
+        <a href="{{ url_for('host.edit', id=host.id) }}"><img src="{{ url_for('static', filename='img/configure.svg') }}" alt="Configure virtual machine" title="Configure virtual machine" class="action" /></a>
+        <a href="{{ url_for('host.download', id=host.id) }}"><img src="{{ url_for('static', filename='img/download.svg') }}" alt="Download virtual machine image" title="Download virtual machine" class="action" /></a>
+        <img src="{{ url_for('static', filename='img/delete.svg') }}" alt="Delete virtual machine" title="Delete virtual machine" class="action" onclick="confirm_delete('{{ url_for('host.delete', id=host.id) }}', '{{'delete' if host.status in [HostStatus.defining, HostStatus.error] else 'destroy'}}')" />
+        <a href="{{ url_for('host.info', id=host.id) }}"><img src="{{ url_for('static', filename='img/info.svg') }}" alt="Show virtual machine info" title="Show virtual machine info" class="action" /></a>
       </td>
     </tr>
   {% endfor %}
 </table>
 
 {% if Roles.owner in user.roles %}
-  <a class="btn" href="{{ url_for('host.add') }}">Add new host</a>
+  <a class="btn" href="{{ url_for('main.data_info') }}">Add new host</a>
 {% endif %}
 
 {% if user.hosts.count() > 0 %}
