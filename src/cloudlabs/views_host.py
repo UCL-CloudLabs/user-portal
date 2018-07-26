@@ -193,7 +193,7 @@ def destroy(host):
         # If the host cannot be found, we check whether its group exists (for
         # example, in case the VM was already deleted from the portal).
         # If the group is not there, we do nothing.
-        elif host.status == Host.unknown:
+        elif host.status == HostStatus.unknown:
             if not host.group_exists:
                 logger.info(
                     "All resources for host %s have been destroyed already.",
@@ -202,6 +202,8 @@ def destroy(host):
                 return
             else:
                 hard_delete = True
+                logger.info("Deleting remaining resource for host %s",
+                            host.id)
         # In any other case, we simply delete everything through Terraform.
         else:
             hard_delete = False
