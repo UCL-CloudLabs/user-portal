@@ -1,0 +1,2 @@
+class CloudLabsException(Exception):
+    pass

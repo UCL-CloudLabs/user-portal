@@ -141,7 +141,7 @@ class TestDeployer:
         # Wait for 10 secs so we make sure app has had the time to be deployed.
         sleep(10)
         # URL and port are available through the host's link property
-        url = host.link
+        url = host.underlying_url
         # Check website is live
         response = requests.get(url)
         assert 200 == response.status_code

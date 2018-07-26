@@ -8,9 +8,10 @@ adal==0.4.7               # via msrestazure
 alembic==0.9.3            # via flask-migrate
 amqp==2.2.1               # via kombu
 asn1crypto==0.23.0        # via cryptography
-azure-common==1.1.8       # via azure-mgmt-compute, azure-mgmt-resource
+azure-common==1.1.8       # via azure-mgmt-compute, azure-mgmt-network, azure-mgmt-resource
 azure-mgmt-compute==3.0.1
-azure-mgmt-nspkg==2.0.0   # via azure-mgmt-compute, azure-mgmt-resource
+azure-mgmt-network==1.7.1
+azure-mgmt-nspkg==2.0.0   # via azure-mgmt-compute, azure-mgmt-network, azure-mgmt-resource
 azure-mgmt-resource==1.2.2
 azure-nspkg==2.0.0        # via azure-common, azure-mgmt-nspkg
 billiard==3.5.0.3         # via celery
@@ -20,6 +21,7 @@ certifi==2017.11.5        # via msrest
 cffi==1.11.2              # via cryptography
 click==6.7                # via flask, pip-tools
 cryptography==2.1.4       # via adal
+dnspython==1.15.0
 first==2.0.1              # via pip-tools
 flask-migrate==2.0.4
 flask-script==2.0.5       # via flask-migrate
@@ -31,13 +33,13 @@ haikunator==2.1.0
 idna==2.6                 # via cryptography
 isodate==0.6.0            # via msrest
 itsdangerous==0.24        # via flask
-jinja2==2.9.6             # via flask
+jinja2==2.9.6
 keyring==10.5.0           # via msrestazure
 kombu==4.1.0              # via celery
 mako==1.0.7               # via alembic
 markupsafe==1.0           # via jinja2, mako
 msrest==0.4.19            # via msrestazure
-msrestazure==0.4.18       # via azure-mgmt-compute, azure-mgmt-resource
+msrestazure==0.4.18       # via azure-mgmt-compute, azure-mgmt-network, azure-mgmt-resource
 oauthlib==2.0.6           # via requests-oauthlib
 pathlib==1.0.1
 pip-tools==1.9.0

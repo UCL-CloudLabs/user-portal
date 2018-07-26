@@ -177,13 +177,20 @@ class Host(Model):
     @property
     def link(self):
         """The full URL to this host when deployed, for use in href attributes."""
-        # return 'http://' + self.basic_url
-        return 'http://{}:{}'.format(names.azure_url(self.dns_name), self.port)
+        return 'http://{}:{}'.format(self.basic_url, self.port)
 
     @property
     def basic_url(self):
         """This host's URL without scheme, suitable for user display."""
         return self.base_name + '.cloudlabs.rc.ucl.ac.uk'
+
+    @property
+    def underlying_url(self):
+        """The URL of the host in the underlying cloud provider.
+
+        Should primarily be used for testing, not user display.
+        """
+        return 'http://{}:{}'.format(names.azure_url(self.dns_name), self.port)
 
     @property
     def auth_type(self):
