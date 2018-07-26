@@ -200,6 +200,8 @@ def destroy(host):
                     host.id)
                 host.update(status=HostStatus.defining)
                 return
+            else:
+                hard_delete = True
         # In any other case, we simply delete everything through Terraform.
         else:
             hard_delete = False
