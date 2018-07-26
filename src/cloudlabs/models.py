@@ -185,6 +185,14 @@ class Host(Model):
         return self.base_name + '.cloudlabs.rc.ucl.ac.uk'
 
     @property
+    def underlying_url(self):
+        """The URL of the host in the underlying cloud provider.
+
+        Should primarily be used for testing, not user display.
+        """
+        return 'http://{}:{}'.format(names.azure_url(self.dns_name), self.port)
+
+    @property
     def auth_type(self):
         """Whether public key or password auth is used for this host."""
         if self.admin_ssh_key:
